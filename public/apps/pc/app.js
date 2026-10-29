@@ -185,7 +185,8 @@ async function start() {
       options.boot_order = machine.boot === 'cdrom' ? 0x213 : 0x321;
       if (extra) options.hda = extra;
     } else {
-      const own = { buffer: ownImage };
+      // Big images (Windows installs) are read on demand instead of loaded into memory.
+      const own = { buffer: ownImage, async: ownImage.size > 64 * MB };
       const iso = /\.iso$/i.test(ownImage.name);
       const floppy = !iso && ownImage.size <= 2949120;
       if (iso) { options.cdrom = own; options.boot_order = 0x213; }
@@ -208,6 +209,7 @@ async function start() {
       speedTimer = setInterval(updateSpeed, 1000);
       if (machine.id === 'freedos' && files.length) openDriveC();
     });
+    emulator.add_listener('screen-set-size', fitScreen);
     emulator.add_listener('ide-read-start', () => { $('disk').textContent = '● 디스크'; });
     emulator.add_listener('ide-read-end', () => { $('disk').textContent = ''; });
   } catch (err) {
@@ -222,6 +224,25 @@ async function openDriveC() {
   const current = emulator;
   const ready = await current.wait_until_vga_screen_contains(/[A-Z]:\\>/, { timeout_msec: 90_000 }).catch(() => false);
   if (ready && emulator === current) current.keyboard_send_text('C:\nDIR /W\n');
+}
+
+/** Scale the guest screen to the window: whole steps when they fit, so pixels stay sharp. */
+function fitScreen() {
+  if (!emulator) return;
+  // Text mode reports its size in characters, so measure what is actually drawn at 1x.
+  emulator.screen_set_scale(1, 1);
+  requestAnimationFrame(() => {
+    if (!emulator) return;
+    const canvas = $('screen').querySelector('canvas');
+    const shown = canvas.style.display !== 'none' && canvas.width ? canvas : $('screen').querySelector('.text-layer');
+    const w = shown.offsetWidth;
+    const h = shown.offsetHeight;
+    if (!w || !h) return;
+    const box = $('screen-wrap').getBoundingClientRect();
+    const fit = Math.min(box.width / w, box.height / h);
+    const scale = fit >= 1 ? Math.max(1, Math.floor(fit * 2) / 2) : fit;
+    emulator.screen_set_scale(scale, scale);
+  });
 }
 
 function updateSpeed() {
@@ -332,6 +353,7 @@ for (const target of [$('drop'), $('screen-wrap')]) {
     addFiles(dropped.filter((f) => f !== image));
   });
 }
+new ResizeObserver(fitScreen).observe($('screen-wrap'));
 window.addEventListener('beforeunload', () => { emulator?.destroy(); });
 
 machine = MACHINES.find((m) => m.id === read('machine', 'freedos')) || MACHINES[0];
