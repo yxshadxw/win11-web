@@ -13,6 +13,7 @@
     { "id": "sticky",     "name": "스티커 메모", "icon": "🗒️", "image": "/icons/sticky.svg",     "url": "/apps/sticky/",     "width": 420,  "height": 560, "category": "앱" },
     { "id": "settings",   "name": "설정",       "icon": "⚙️", "image": "/icons/settings.svg",   "url": "/apps/settings/",   "width": 860,  "height": 560, "category": "앱",   "desktop": true },
     { "id": "webkart",    "name": "웹 카트",    "icon": "🏎️", "image": "/icons/webkart.svg",    "url": "/apps/webkart/",    "width": 960,  "height": 640, "category": "게임", "desktop": true },
+    { "id": "balloon",    "name": "물풍선 대작전", "icon": "🎈", "image": "/icons/balloon.svg",   "url": "/apps/balloon/",    "width": 900,  "height": 720, "category": "게임", "desktop": true },
     { "id": "chess",      "name": "체스",       "icon": "♟️", "image": "/icons/chess.svg",      "url": "/apps/chess/",      "width": 900,  "height": 680, "category": "게임", "desktop": true },
     { "id": "gostop",     "name": "고스톱",     "icon": "🎴", "image": "/icons/gostop.svg",     "url": "/apps/gostop/",     "width": 1100, "height": 720, "category": "게임", "desktop": true },
     { "id": "solitaire",  "name": "솔리테어",   "icon": "🂡", "image": "/icons/solitaire.svg",  "url": "/apps/solitaire/",  "width": 980,  "height": 680, "category": "게임" },

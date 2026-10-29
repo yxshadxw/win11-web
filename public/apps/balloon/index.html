@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/shared/app.css">
+<script type="module" src="/shared/theme.js"></script>
+<link rel="stylesheet" href="app.css">
+<title>물풍선 대작전</title>
+</head>
+<body>
+<main class="app">
+<header class="toolbar command-bar">
+  <div class="brand"><span class="brand-icon" aria-hidden="true"></span><strong>물풍선 대작전</strong><span class="brand-sub" id="mode-label">레트로 아레나</span></div>
+  <div class="commands">
+    <button class="btn" id="sound" title="소리 끄기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12-1a5 5 0 0 1 0 8"/></svg><span>소리</span></button>
+    <button class="btn" id="pause" title="일시 정지 (Esc 또는 P)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span>일시 정지</span></button>
+    <button class="btn" id="restart" title="다시 시작"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v5h5M5 9a8 8 0 1 1-1 5"/></svg><span>다시 시작</span></button>
+  </div>
+</header>
+<div class="hud" id="hud" hidden>
+  <div class="clock" id="clock" aria-label="남은 시간">3:00</div>
+  <ul class="roster" id="roster" aria-label="플레이어"></ul>
+</div>
+<section class="stage" id="stage" aria-label="게임 화면">
+  <canvas id="game" aria-label="위에서 내려다보는 물풍선 대전 화면"></canvas>
+  <div class="banner" id="banner" hidden aria-live="polite"></div>
+  <div class="touch" id="touch" hidden aria-label="터치 조작">
+    <div class="pad"><button data-dir="up" aria-label="위">▲</button><button data-dir="left" aria-label="왼쪽">◀</button><button data-dir="right" aria-label="오른쪽">▶</button><button data-dir="down" aria-label="아래">▼</button></div>
+    <button class="drop" id="touch-drop" aria-label="물풍선 놓기">풍선</button>
+  </div>
+  <div class="overlay" id="overlay">
+    <section class="panel card" id="title-panel" aria-labelledby="title-heading">
+      <div class="eyebrow">RETRO WATER-BALLOON ARENA</div>
+      <h1 id="title-heading">물풍선 대작전</h1>
+      <p class="intro">물풍선으로 상자를 터뜨리고 아이템을 모아, 마지막까지 남으세요. 물줄기에 갇힌 상대는 몸으로 부딪혀 터뜨립니다.</p>
+      <label class="field">이름 <input class="input" id="name" maxlength="12" autocomplete="nickname" spellcheck="false"></label>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-solo" aria-selected="true" aria-controls="solo">혼자 하기</button>
+        <button class="tab" role="tab" id="tab-online" aria-selected="false" aria-controls="online">온라인 대전</button>
+      </div>
+      <div id="solo" role="tabpanel" aria-labelledby="tab-solo">
+        <div class="row">
+          <label class="field">맵 <select class="input" id="layout"></select></label>
+          <label class="field">컴퓨터 <select class="input" id="bots"><option value="1">1명</option><option value="2">2명</option><option value="3" selected>3명</option></select></label>
+          <label class="field">난이도 <select class="input" id="level"><option value="easy">쉬움</option><option value="normal" selected>보통</option><option value="hard">어려움</option></select></label>
+        </div>
+        <button class="btn primary wide" id="start">게임 시작</button>
+        <p class="record" id="record"></p>
+      </div>
+      <div id="online" role="tabpanel" aria-labelledby="tab-online" hidden>
+        <p class="hint">방을 만들고 코드나 초대 링크를 보내면 최대 4명이 함께 합니다. 빈자리는 컴퓨터로 채울 수 있습니다.</p>
+        <button class="btn primary wide" id="create-room">방 만들기</button>
+        <form class="join" id="join-form">
+          <input class="input" id="join-code" maxlength="6" placeholder="방 코드 6자리" aria-label="방 코드" autocomplete="off" spellcheck="false">
+          <button class="btn" type="submit">참가</button>
+        </form>
+      </div>
+      <div class="help"><strong>조작</strong><span>방향키 / WASD 이동</span><span>Space / Enter 물풍선</span><span>Esc / P 일시 정지</span><span>상자 속 아이템: 풍선 수 · 물줄기 · 속도</span></div>
+      <p class="error" id="title-error" role="alert"></p>
+    </section>
+
+    <section class="panel card" id="lobby-panel" hidden aria-labelledby="lobby-heading">
+      <div class="eyebrow">ONLINE ROOM</div>
+      <h2 id="lobby-heading">대기실 <span class="code" id="room-code"></span></h2>
+      <ol class="seats" id="seats"></ol>
+      <div class="row">
+        <label class="field">맵 <select class="input" id="room-layout"></select></label>
+        <label class="field">컴퓨터 <select class="input" id="room-bots"></select></label>
+      </div>
+      <p class="hint" id="lobby-note"></p>
+      <div class="panel-actions">
+        <button class="btn primary" id="room-start">시작</button>
+        <button class="btn" id="copy-link">초대 링크 복사</button>
+        <button class="btn" id="leave-room">나가기</button>
+      </div>
+      <p class="error" id="lobby-error" role="alert"></p>
+    </section>
+
+    <section class="panel card compact" id="pause-panel" hidden>
+      <div class="eyebrow">PAUSED</div><h2>일시 정지</h2>
+      <div class="panel-actions"><button class="btn primary" id="resume">계속하기</button><button class="btn" id="pause-restart">다시 시작</button><button class="btn" id="pause-title">처음으로</button></div>
+    </section>
+
+    <section class="panel card compact" id="result-panel" hidden>
+      <div class="eyebrow">ROUND OVER</div><h2 id="result-heading"></h2>
+      <ol class="results" id="results"></ol>
+      <div class="panel-actions"><button class="btn primary" id="again">한 판 더</button><button class="btn" id="result-title">처음으로</button></div>
+      <p class="hint" id="result-note"></p>
+    </section>
+  </div>
+</section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

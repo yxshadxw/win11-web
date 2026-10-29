@@ -19,7 +19,7 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 |---|---|
 | `/` | 데스크톱 |
 | `/?open=webkart` | 데스크톱을 열고 웹 카트 창 띄우기 (쉼표로 여러 개: `/?open=notepad,calculator`) |
-| `/apps/<id>/` | 앱 단독 페이지 (`explorer`, `chrome`, `notepad`, `terminal`, `photos`, `calculator`, `paint`, `settings`, `webkart`, `gostop`, `shooter`, `typing`, `snake`, `breakout`, `memory`) |
+| `/apps/<id>/` | 앱 단독 페이지 (`explorer`, `chrome`, `notepad`, `terminal`, `photos`, `calculator`, `paint`, `settings`, `webkart`, `balloon`, `gostop`, `shooter`, `typing`, `snake`, `breakout`, `memory`) |
 | `/apps/chrome/?url=example.com` | 크롬 앱에서 바로 사이트 열기 |
 
 ## 데스크톱 기능
@@ -39,6 +39,15 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 체스 앱에서 상대를 '온라인'으로 고르고 방을 만든 뒤 6자리 코드나 초대 링크(`/apps/chess/?room=코드`)를 친구에게 보내면 됩니다. 서버(`chess-online.mjs`)가 모든 수를 `rules.js`로 검사하고 Server-Sent Events로 두 사람에게 실시간 전달합니다. 세 번째로 들어온 사람은 관전합니다. 대국이 끝나면 둘 다 재대결을 누를 때 색을 바꿔 새 게임이 시작됩니다. 방은 서버 메모리에만 있어서 서버가 재시작되면 사라집니다.
 
 `node tests/chess-online.e2e.cjs [주소]`는 브라우저 두 개로 실제 대국을 진행해 확인합니다.
+
+## 물풍선 대작전 (온라인 레트로 아레나)
+
+16×16 픽셀 타일로 그린 레트로 물풍선 대전입니다. 물풍선으로 상자를 터뜨려 아이템(풍선 수·물줄기·속도)을 모으고, 물줄기에 갇힌 상대는 몸으로 부딪혀 터뜨립니다. 마지막 1분은 바깥부터 벽이 닫혀 들어와 판이 반드시 끝납니다.
+
+- 혼자 하기: 컴퓨터 1~3명, 난이도 3단계, 맵 2개
+- 온라인 대전: 방을 만들고 6자리 코드나 초대 링크(`/apps/balloon/?room=코드`)를 보내면 최대 4명이 함께 합니다. 빈자리는 컴퓨터로 채울 수 있고, 다섯 번째부터는 관전합니다.
+
+규칙(`public/apps/balloon/rules.js`)과 컴퓨터 플레이어(`ai.js`)는 브라우저와 서버가 같은 파일을 씁니다. 온라인에서는 서버(`balloon-online.mjs`)가 초당 20틱으로 판을 돌리고, 플레이어는 키 입력만 보내며, 결과 화면을 Server-Sent Events로 받습니다. 그래서 클라이언트를 조작해도 판정을 바꿀 수 없습니다. 연결이 끊기거나 나간 플레이어는 그 판이 끝날 때까지 컴퓨터가 대신 조종합니다. 키 입력은 일반 요청 제한 대신 자리당 초당 40회로 제한합니다. 방은 서버 메모리에만 있습니다.
 
 ## 크롬 앱과 프록시
 
