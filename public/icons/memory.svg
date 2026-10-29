@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="memory-g" x2="1" y2="1"><stop stop-color="#8de1fa"/><stop offset="1" stop-color="#3574d0"/></linearGradient></defs>
+  <rect x="5" y="9" width="20" height="30" rx="4" transform="rotate(-9 15 24)" fill="#3059a4"/><rect x="7" y="7" width="20" height="30" rx="4" transform="rotate(-9 17 22)" fill="url(#memory-g)"/>
+  <rect x="23" y="11" width="20" height="30" rx="4" transform="rotate(9 33 26)" fill="#e0b8a2"/><rect x="22" y="9" width="20" height="30" rx="4" transform="rotate(9 32 24)" fill="#fff2e4"/>
+  <path d="m32 16 2 4 4 .5-3 3 .7 4-3.7-2-3.7 2 .7-4-3-3 4-.5z" fill="#f2a64a"/>
+</svg>

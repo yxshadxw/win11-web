@@ -1,0 +1,31 @@
+body { overflow: hidden; }
+.toolbar { height: 52px; gap: 12px; }
+h1 { font-size: 20px; margin: 0; flex: 1; }
+.icon { width: 36px; padding: 8px; border-color: transparent; background: transparent; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.layout { display: flex; height: calc(100% - 52px); padding: 4px; gap: 8px; }
+.calculator { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.readout { text-align: right; padding: 12px 12px 8px; min-height: 95px; overflow: hidden; }
+#expression { color: var(--text-2); height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#display { font-size: clamp(30px, 7vw, 46px); font-weight: 600; white-space: nowrap; overflow: auto; }
+.memory, .scientific, .keys { display: grid; gap: 4px; }
+.memory { grid-template-columns: repeat(6, 1fr); margin-bottom: 4px; }
+.memory button { border: 0; background: transparent; padding: 5px 0; font-size: 12px; }
+.scientific { grid-template-columns: repeat(5, 1fr); margin-bottom: 4px; }
+.keys { grid-template-columns: repeat(4, 1fr); flex: 1; }
+.keys button, .scientific button { min-height: 34px; border-radius: 5px; font-size: 18px; }
+.keys .number { background: var(--surface-2); font-weight: 600; }
+.keys .equals { background: var(--accent); color: var(--accent-text); }
+.popup { position: absolute; z-index: 3; top: 48px; left: 8px; width: 180px; box-shadow: var(--shadow); }
+.popup button { width: 100%; justify-content: flex-start; margin: 2px 0; }
+.history { width: 250px; overflow: auto; }
+.history-head { display: flex; justify-content: space-between; align-items: center; }
+h2 { font-size: 16px; }
+.history-item { width: 100%; text-align: right; display: block; border: 0; background: transparent; padding: 10px; border-radius: 5px; cursor: pointer; }
+.history-item:hover { background: var(--surface-hover); }
+.history-item small { display: block; color: var(--text-2); }
+.history-toggle { display: none; }
+@media (max-width: 700px) { .history-toggle { display: inline-flex; } .history { display: none; position: absolute; z-index: 2; right: 4px; top: 52px; bottom: 4px; width: min(300px, calc(100% - 8px)); box-shadow: var(--shadow); } .history.open { display: block; } }
+@media (max-height: 500px) { .readout { min-height: 65px; padding: 2px 10px; } #display { font-size: 30px; } .keys button, .scientific button { min-height: 25px; } }
+
+[hidden] { display: none !important; }

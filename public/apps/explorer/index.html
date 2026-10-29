@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>파일 탐색기</title>
+</head>
+<body>
+  <header>
+    <div class="toolbar commands" id="commands"></div>
+    <div class="navigation">
+      <button class="btn" id="back" title="뒤로" aria-label="뒤로">←</button>
+      <button class="btn" id="forward" title="앞으로" aria-label="앞으로">→</button>
+      <button class="btn" id="up" title="위로" aria-label="위로">↑</button>
+      <div class="breadcrumbs" id="breadcrumbs" aria-label="경로"></div>
+      <input class="input" id="search" type="search" placeholder="현재 폴더 검색" aria-label="현재 폴더 검색">
+    </div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" aria-label="폴더 탐색"></nav>
+    <main><div id="list" tabindex="0" aria-label="파일 목록"></div></main>
+  </div>
+  <footer id="status"></footer>
+  <div id="menu" class="menu" hidden></div>
+  <dialog id="dialog"><form id="dialog-form"><h2 id="dialog-title"></h2><p id="dialog-message"></p><input class="input" id="dialog-input" autocomplete="off"><div class="dialog-actions" id="dialog-actions"></div></form></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

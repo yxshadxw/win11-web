@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <title>크롬</title>
+  <link rel="stylesheet" href="app.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="chrome">
+    <div class="tabstrip">
+      <ul id="tabs" class="tabs" role="tablist"></ul>
+      <button id="new-tab" class="tab-new" type="button" title="새 탭" aria-label="새 탭">+</button>
+    </div>
+    <div class="navbar">
+      <button id="back" class="nav-btn" type="button" title="뒤로" aria-label="뒤로">
+        <svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="forward" class="nav-btn" type="button" title="앞으로" aria-label="앞으로">
+        <svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="reload" class="nav-btn" type="button" title="새로고침" aria-label="새로고침">
+        <svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5V5h-2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="home" class="nav-btn" type="button" title="홈" aria-label="홈">
+        <svg viewBox="0 0 16 16"><path d="M2.5 7.5 8 3l5.5 4.5V13h-3.5V9.5h-4V13H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </button>
+      <form id="omnibox" class="omnibox" autocomplete="off">
+        <span id="lock" class="lock" aria-hidden="true">🔍</span>
+        <input id="address" type="text" placeholder="Google 대신 DuckDuckGo로 검색하거나 URL 입력" aria-label="주소 및 검색창" spellcheck="false">
+      </form>
+      <button id="external" class="nav-btn" type="button" title="실제 브라우저 새 탭에서 열기" aria-label="실제 브라우저 새 탭에서 열기">
+        <svg viewBox="0 0 16 16"><path d="M7 3H3v10h10V9M9.5 2.5h4v4M13.5 2.5 7.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="progress" id="progress" hidden></div>
+    <div id="views" class="views"></div>
+  </div>
+
+  <template id="newtab-tpl">
+    <div class="newtab">
+      <h1 class="newtab-logo">Chrome</h1>
+      <form class="newtab-search">
+        <input class="input" type="search" name="q" placeholder="DuckDuckGo로 검색하거나 URL 입력" aria-label="검색">
+      </form>
+      <ul class="shortcuts" role="list"></ul>
+      <p class="newtab-note">외부 사이트는 서버 프록시로 불러옵니다. 로그인, 동영상 재생처럼 복잡한 기능은 제대로 동작하지 않을 수 있어요. 그럴 땐 오른쪽 위 ↗ 버튼으로 실제 브라우저에서 여세요.</p>
+    </div>
+  </template>
+</body>
+</html>

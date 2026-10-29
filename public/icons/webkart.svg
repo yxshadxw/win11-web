@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="webkart-g" x2="0" y2="1"><stop stop-color="#ff8e69"/><stop offset="1" stop-color="#d9343f"/></linearGradient></defs>
+  <path d="M5 33h38l-2-7-9-2-5-7H17l-4 9-6 2z" fill="url(#webkart-g)"/>
+  <path d="M19 18h7l4 7H16z" fill="#96e6fa"/><path d="M5 32h38v4H5z" fill="#9d273c"/>
+  <circle cx="13" cy="36" r="6" fill="#24334a"/><circle cx="35" cy="36" r="6" fill="#24334a"/><circle cx="13" cy="36" r="2.5" fill="#c8d8e6"/><circle cx="35" cy="36" r="2.5" fill="#c8d8e6"/>
+</svg>

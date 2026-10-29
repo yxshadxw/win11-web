@@ -1,0 +1,100 @@
+.chrome { display: flex; flex-direction: column; height: 100%; }
+
+.tabstrip {
+  display: flex; align-items: flex-end; gap: 2px;
+  padding: 6px 8px 0;
+  background: color-mix(in srgb, var(--bg) 85%, var(--accent) 15%);
+}
+.tabs { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; min-width: 0; overflow: hidden; }
+.tab {
+  display: flex; align-items: center; gap: 8px;
+  width: 220px; min-width: 64px; flex: 0 1 220px;
+  height: 34px; padding: 0 6px 0 12px;
+  border-radius: 8px 8px 0 0;
+  font-size: 12px; cursor: default;
+}
+.tab:hover { background: var(--surface-hover); }
+.tab[aria-selected="true"] { background: var(--surface); }
+.tab .fav { flex: 0 0 auto; }
+.tab .name { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tab .x {
+  width: 20px; height: 20px; border: 0; border-radius: 50%; background: none;
+  display: grid; place-items: center; font-size: 14px; line-height: 1; cursor: default;
+}
+.tab .x:hover { background: var(--surface-hover); }
+.tab-new {
+  width: 28px; height: 28px; margin-bottom: 3px; border: 0; border-radius: 50%;
+  background: none; font-size: 18px; cursor: default;
+}
+.tab-new:hover { background: var(--surface-hover); }
+
+.navbar {
+  display: flex; align-items: center; gap: 2px;
+  padding: 5px 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.nav-btn {
+  width: 32px; height: 32px; flex: 0 0 32px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: none; cursor: default;
+}
+.nav-btn svg { width: 16px; height: 16px; }
+.nav-btn:hover:not(:disabled) { background: var(--surface-hover); }
+.nav-btn:disabled { opacity: .35; }
+.omnibox {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  height: 34px; margin: 0 4px; padding: 0 14px;
+  border-radius: 17px;
+  background: var(--bg);
+  border: 1px solid transparent;
+}
+.omnibox:focus-within { background: var(--surface-2); border-color: var(--accent); }
+.omnibox input { flex: 1; min-width: 0; border: 0; outline: none; background: none; }
+.lock { font-size: 12px; opacity: .7; }
+
+.progress {
+  height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 50% 100%; background-repeat: no-repeat;
+  animation: loading 1s linear infinite;
+}
+@keyframes loading { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+
+.views { position: relative; flex: 1; background: #fff; }
+.view { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+.view[hidden] { display: none; }
+
+.newtab {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10vh 16px 24px; overflow-y: auto;
+  background: var(--bg);
+}
+.newtab-logo {
+  margin: 0 0 24px; font-size: 44px; font-weight: 600; letter-spacing: -1px;
+  background: linear-gradient(90deg, #4285f4, #ea4335, #fbbc05, #34a853);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.newtab-search { width: min(560px, 100%); }
+.newtab-search .input { width: 100%; height: 44px; border-radius: 22px; padding: 0 20px; border-bottom-width: 1px; }
+.shortcuts {
+  list-style: none; margin: 28px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, 104px); gap: 8px;
+  width: min(580px, 100%); justify-content: center;
+}
+.shortcut {
+  width: 104px; padding: 14px 4px; border: 0; border-radius: 8px; background: none;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; cursor: default;
+}
+.shortcut:hover { background: var(--surface-hover); }
+.shortcut .ico {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 22px; background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.newtab-note { max-width: 520px; margin-top: 32px; font-size: 12px; color: var(--text-2); text-align: center; line-height: 1.6; }
+
+@media (max-width: 520px) {
+  #home, #forward { display: none; }
+  .tab { width: 120px; }
+}

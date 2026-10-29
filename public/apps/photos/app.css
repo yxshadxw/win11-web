@@ -1,0 +1,20 @@
+html, body { height: 100%; overflow: hidden; }
+body { display: flex; flex-direction: column; }
+a.btn { text-decoration: none; }
+.brand { display: flex; gap: 9px; align-items: center; padding: 0 8px; font-size: 16px; }
+.spacer { flex: 1; }
+#gallery { flex: 1; overflow: auto; padding: 24px 32px; }
+.heading h1 { margin: 0; font-size: 26px; }.heading p { color: var(--text-2); margin: 5px 0 28px; }
+.group { margin-bottom: 30px; }.group h2 { font-size: 16px; margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.photo { border: 1px solid var(--border); background: var(--surface); padding: 0; border-radius: var(--radius); overflow: hidden; cursor: pointer; text-align: left; }
+.photo:hover { background: var(--surface-hover); }.photo:focus-visible { outline: 2px solid var(--accent); }
+.photo img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: var(--surface-2); }.photo span { display: block; padding: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty { text-align: center; padding: 12vh 12px; color: var(--text-2); }.empty h2 { color: var(--text); }.empty-icon { font-size: 64px; color: var(--accent); }
+#viewer { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); } #viewer[hidden] { display: none; }
+.viewer-toolbar { flex-wrap: wrap; }.viewer-toolbar strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 25vw; } #zoom-label { min-width: 42px; text-align: center; color: var(--text-2); }
+#stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: grab; background: var(--bg); }
+#stage:active { cursor: grabbing; } #image { max-width: 90%; max-height: 90%; object-fit: contain; transform-origin: center; user-select: none; pointer-events: none; }
+.nav { position: absolute; top: 50%; transform: translateY(-50%); border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 30px; width: 38px; height: 48px; cursor: pointer; }.previous { left: 12px; }.next { right: 12px; }
+dialog { color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); max-width: min(90vw, 420px); } dialog::backdrop { background: #0008; } dialog h2 { font-size: 18px; } .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+@media (max-width: 600px) { #gallery { padding: 18px 16px; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .viewer-toolbar { gap: 3px; } .viewer-toolbar .btn { padding: 4px 7px; } .viewer-toolbar strong { max-width: 35vw; } }

@@ -1,0 +1,31 @@
+body { display:flex; flex-direction:column; overflow:hidden; }
+header { flex:none; background:var(--surface); }
+.toolbar { flex-wrap:wrap; }
+.toolbar .btn, .tool { background:transparent; border-color:transparent; }
+.toolbar .btn:hover, .tool:hover { background:var(--surface-hover); }
+svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.ribbon { display:flex; gap:16px; padding:10px; overflow:auto; border-bottom:1px solid var(--border); }
+.ribbon section { flex:none; border-right:1px solid var(--border); padding-right:16px; }
+.ribbon section:last-child { border:0; }
+small { display:block; color:var(--text-2); text-align:center; margin-top:6px; }
+.tools { display:grid; grid-template-columns:repeat(5, 36px); gap:3px; }
+.tool { width:36px; height:34px; display:grid; place-items:center; border:1px solid transparent; border-radius:5px; cursor:pointer; }
+.tool.active { background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:var(--accent); }
+.settings { display:grid; gap:5px; min-width:190px; }
+.settings label { display:flex; align-items:center; gap:6px; font-size:12px; }
+.settings input { width:80px; accent-color:var(--accent); }
+.settings select { min-height:27px; padding:2px 5px; }
+.color-controls { display:flex; gap:8px; }
+.color-controls label { display:flex; align-items:center; gap:4px; font-size:12px; }
+input[type=color] { width:34px; height:30px; padding:2px; border:1px solid var(--border); background:var(--surface-2); border-radius:4px; cursor:pointer; }
+#palette { display:grid; grid-template-columns:repeat(10, 20px); gap:3px; margin-top:5px; }
+.swatch { width:20px; height:20px; border:1px solid #8888; border-radius:3px; cursor:pointer; }
+.swatch:focus-visible, button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+#workspace { flex:1; min-height:0; overflow:auto; padding:24px; background:var(--bg); }
+canvas { display:block; background:white; box-shadow:0 2px 10px #0003; touch-action:none; cursor:crosshair; }
+footer { display:flex; align-items:center; gap:20px; padding:5px 12px; color:var(--text-2); border-top:1px solid var(--border); font-size:12px; }
+.zoom { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.zoom .btn { min-height:26px; padding:0 8px; }
+dialog { width:min(460px, calc(100vw - 32px)); max-height:80vh; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); padding:24px; }
+dialog::backdrop { background:#0006; } dialog h2 { margin:0 0 10px; font-size:20px; } dialog p { color:var(--text-2); } #dialog-content { display:grid; gap:8px; max-height:45vh; overflow:auto; } #dialog-content .input { width:100%; } .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:24px; } .file { text-align:left; justify-content:flex-start; overflow-wrap:anywhere; }
+@media(max-width:600px) { .toolbar .btn span { display:none; } .ribbon { gap:10px; padding:6px; } #workspace { padding:12px; } footer { gap:8px; } }

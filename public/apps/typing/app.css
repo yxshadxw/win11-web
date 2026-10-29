@@ -1,0 +1,21 @@
+.app { height: 100%; display: flex; flex-direction: column; }
+.toolbar { gap: 8px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.content { width: min(900px, 100%); margin: auto; padding: 20px; overflow: auto; }
+.intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+h1 { margin: 3px 0 8px; font-size: clamp(24px, 4vw, 36px); }
+.intro p { color: var(--text-2); margin: 0; }
+.intro .eyebrow { color: var(--accent); font-weight: 700; font-size: 11px; letter-spacing: .16em; }
+.modes { display: flex; gap: 6px; flex-shrink: 0; }
+.game-card { padding: 0; overflow: hidden; box-shadow: var(--shadow); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 600; }
+.stats span:first-child { color: var(--accent); margin-right: auto; }
+.arena { height: clamp(240px, 40vh, 400px); position: relative; overflow: hidden; background: linear-gradient(160deg, var(--surface-2), var(--bg)); border-bottom: 3px solid var(--accent); }
+.word { position: absolute; padding: 5px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); white-space: nowrap; }
+.sentence { position: absolute; inset: 0; padding: 35px; display: flex; align-content: center; align-items: center; flex-wrap: wrap; font-size: clamp(21px, 3vw, 30px); line-height: 1.8; white-space: pre-wrap; }
+.sentence[hidden], .notice[hidden] { display: none; }
+.correct { color: var(--success); }.wrong { color: var(--danger); text-decoration: underline; }.current { background: var(--accent); color: var(--accent-text); border-radius: 3px; }
+.notice { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; background: var(--surface); }
+.notice strong { font-size: 24px; }.notice p { color: var(--text-2); line-height: 1.6; white-space: pre-line; }
+.input-label { display: block; margin: 15px 18px 5px; font-weight: 600; }.answer { display: block; width: calc(100% - 36px); margin: 0 18px; font-size: 18px; }.hint { color: var(--text-2); margin: 9px 18px 16px; }
+@media (max-width: 600px) { .content { padding: 12px; margin: 0 auto; }.intro { align-items: start; flex-direction: column; gap: 12px; }.sentence { padding: 20px; }.toolbar { gap: 4px; } }

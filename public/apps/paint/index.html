@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>제목 없음 - 그림판</title>
+</head>
+<body>
+  <header>
+    <div class="toolbar" id="filebar"></div>
+    <div class="ribbon">
+      <section><div class="tools" id="tools"></div><small>도구</small></section>
+      <section class="settings">
+        <label>크기 <input id="size" type="range" min="1" max="60" value="4"><output id="size-value">4px</output></label>
+        <label>도형 <select class="input" id="shape-mode"><option value="outline">윤곽선</option><option value="fill">채우기</option></select></label>
+        <label>채우기 허용 오차 <input id="tolerance" type="range" min="0" max="100" value="20"><output id="tolerance-value">20</output></label>
+      </section>
+      <section class="colors"><div class="color-controls"><label>색 1 <input type="color" id="primary" value="#000000"></label><label>색 2 <input type="color" id="secondary" value="#ffffff"></label></div><div id="palette" aria-label="색상 팔레트"></div><small>오른쪽 클릭으로 색 2 선택</small></section>
+    </div>
+  </header>
+  <main id="workspace"><canvas id="canvas" width="1000" height="650" aria-label="그림 캔버스"></canvas></main>
+  <footer><span id="position">위치: —</span><span id="dimensions"></span><div class="zoom"><button class="btn" id="zoom-out" aria-label="축소">−</button><span id="zoom-label">100%</span><button class="btn" id="zoom-in" aria-label="확대">+</button></div></footer>
+  <dialog id="dialog"><form id="dialog-form"><h2 id="dialog-title"></h2><p id="dialog-message"></p><div id="dialog-content"></div><div class="dialog-actions" id="dialog-actions"></div></form></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

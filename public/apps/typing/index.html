@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>타자 레이서</title>
+</head>
+<body>
+  <main class="app">
+    <header class="toolbar"><strong>⌨ 타자 레이서</strong><span class="spacer"></span><button class="btn" id="language">한국어</button><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">다시 시작</button></header>
+    <div class="content">
+      <section class="intro"><div><p class="eyebrow">TYPING RACER</p><h1>손끝으로 달리는 시간</h1><p>낱말을 잡거나 문장을 완성하며 나만의 속도를 찾아보세요.</p></div><div class="modes"><button class="btn primary" id="rain-mode">낱말 비</button><button class="btn" id="sentence-mode">문장 연습</button></div></section>
+      <section class="card game-card">
+        <div class="stats"><span id="mode-label">낱말 비</span><span id="speed">타수 0</span><span id="accuracy">정확도 100%</span><span id="extra">생명 ♥♥♥</span></div>
+        <div class="arena" id="arena"><div class="sentence" id="sentence" hidden></div><div class="notice" id="notice"><strong>준비되셨나요?</strong><p>시작 버튼을 눌러 연습을 시작하세요.</p><button class="btn primary" id="start">시작하기</button></div></div>
+        <label class="input-label" for="answer">여기에 입력하세요</label><input class="input answer" id="answer" autocomplete="off" autocapitalize="off" spellcheck="false" disabled>
+        <p class="hint" id="hint">떨어지는 낱말을 입력하고 Enter를 누르세요.</p>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

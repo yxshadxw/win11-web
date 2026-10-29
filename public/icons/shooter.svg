@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="shooter-g" x2="0" y2="1"><stop stop-color="#d5f8ff"/><stop offset="1" stop-color="#4b9de1"/></linearGradient></defs>
+  <circle cx="24" cy="24" r="20" fill="#273b78"/><path d="M24 7c5 5 8 12 8 20l7 8-9-2-6 6-6-6-9 2 7-8c0-8 3-15 8-20z" fill="url(#shooter-g)"/>
+  <circle cx="24" cy="20" r="4" fill="#3766a9"/><path d="m20 37 4 7 4-7" fill="#ffbb57"/><path d="M10 13h4M12 11v4M35 17h4M37 15v4" stroke="#fff3b3" stroke-width="1.5"/>
+</svg>

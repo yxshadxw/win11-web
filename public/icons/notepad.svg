@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="notepad-g" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#cce5fb"/></linearGradient></defs>
+  <rect x="9" y="5" width="30" height="39" rx="4" fill="#1683d5"/>
+  <path fill="url(#notepad-g)" d="M12 11h24v29H12z"/>
+  <path d="M16 19h16M16 24h16M16 29h12" stroke="#6aa9d6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M15 5v7M22 5v7M29 5v7M36 5v7" stroke="#a9e1ff" stroke-width="2"/>
+</svg>

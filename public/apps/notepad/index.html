@@ -1,0 +1,31 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>제목 없음 - 메모장</title>
+</head>
+<body>
+  <div class="toolbar" aria-label="파일 명령">
+    <button class="btn" id="new" title="새로 만들기 (Ctrl+N)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5h6l4 4v9H3z M9 1.5v4h4"/></svg> 새로 만들기</button>
+    <button class="btn" id="open" title="열기 (Ctrl+O)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h5l1.5 1.5h6l-1.5 7.5h-11z"/></svg> 열기</button>
+    <button class="btn" id="save" title="저장 (Ctrl+S)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1.5h10l2 2v11H2z M4 1.5v4h7v-4 M4 14v-5h8v5"/></svg> 저장</button>
+    <button class="btn" id="saveas">다른 이름으로 저장</button>
+    <span class="spacer"></span>
+    <label><input type="checkbox" id="wrap" checked> 자동 줄 바꿈</label>
+    <label>글꼴 크기 <input class="input" id="size" type="number" min="10" max="48" value="16"></label>
+  </div>
+  <textarea id="editor" aria-label="문서 텍스트" spellcheck="false"></textarea>
+  <div class="status"><span id="name"></span><span class="spacer"></span><span id="position"></span><span id="count"></span><span>UTF-8</span></div>
+  <dialog id="dialog" aria-labelledby="dialog-title">
+    <h2 id="dialog-title"></h2>
+    <p id="dialog-message"></p>
+    <div id="files" class="stack"></div>
+    <form id="dialog-form"><label id="path-label" hidden>파일 경로 <input class="input" id="path-input" autocomplete="off"></label><div class="actions" id="dialog-actions"></div></form>
+  </dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

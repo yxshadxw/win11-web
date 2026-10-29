@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: win11-web
+    runtime: node
+    plan: starter
+    buildCommand: "true"
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Address of the deployed gostop-next (hwatu-club) service, e.g. https://hwatu-club.onrender.com
+      - key: GOSTOP_URL
+        sync: false

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="search-g" x2="1" y2="1"><stop stop-color="#a2e8ff"/><stop offset="1" stop-color="#318bd2"/></linearGradient></defs>
+  <circle cx="20" cy="20" r="13" fill="url(#search-g)" stroke="#3776a7" stroke-width="3"/><path d="m30 30 10 10" stroke="#345c82" stroke-width="6" stroke-linecap="round"/><path d="M13 18a8 8 0 0 1 7-6" fill="none" stroke="#e7faff" stroke-width="2" stroke-linecap="round"/>
+</svg>

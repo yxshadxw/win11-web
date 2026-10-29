@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>벽돌 깨기</title>
+</head>
+<body>
+  <header class="toolbar"><h1>벽돌 깨기</h1><button class="btn" id="pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4v12M12 4v12"/></svg><span>일시 정지</span></button><button class="btn" id="restart"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 8a7 7 0 1 1 1 6M4 3v5h5"/></svg><span>다시 시작</span></button><button class="btn" id="mute"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3v10l-4-3H3zM13 7l4 6m0-6-4 6"/></svg><span>소리 끄기</span></button></header>
+  <main>
+    <div class="hud" id="hud"></div>
+    <section class="card stage" id="stage">
+      <canvas id="game" aria-label="벽돌 깨기 게임"></canvas>
+      <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+        <div class="overlay-box"><h2 id="overlay-title">벽돌 깨기</h2><p id="message"></p><div class="options" id="options"></div><button class="btn primary" id="start">게임 시작</button></div>
+      </div>
+    </section>
+    
+    <p class="help" id="help"></p>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

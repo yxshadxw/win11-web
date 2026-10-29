@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>터미널</title>
+</head>
+<body>
+  <header class="tabs"><div class="tab"><span>▣</span> 명령 프롬프트 <span class="close">×</span></div><span class="plus" aria-hidden="true">＋</span></header>
+  <main id="terminal" aria-label="터미널">
+    <div id="output" aria-live="polite"></div>
+    <form id="command-form"><span id="prompt"></span><span class="input-wrap"><input id="command" aria-label="명령 입력" autocomplete="off" spellcheck="false"><span class="cursor" aria-hidden="true"></span></span></form>
+  </main>
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

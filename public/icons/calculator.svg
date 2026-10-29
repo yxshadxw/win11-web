@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="calculator-g" x2="1" y2="1"><stop stop-color="#65798f"/><stop offset="1" stop-color="#263d57"/></linearGradient></defs>
+  <rect x="8" y="4" width="32" height="40" rx="5" fill="url(#calculator-g)"/>
+  <rect x="12" y="8" width="24" height="9" rx="2" fill="#bfe8f7"/>
+  <g fill="#eef7ff"><rect x="12" y="21" width="6" height="5" rx="1"/><rect x="21" y="21" width="6" height="5" rx="1"/><rect x="30" y="21" width="6" height="5" rx="1"/><rect x="12" y="29" width="6" height="5" rx="1"/><rect x="21" y="29" width="6" height="5" rx="1"/><rect x="12" y="37" width="15" height="3" rx="1"/></g>
+  <rect x="30" y="29" width="6" height="11" rx="1" fill="#48baff"/>
+</svg>

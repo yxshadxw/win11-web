@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Win11 Web</title>
+  <meta name="description" content="브라우저 안의 윈도우 11 스타일 데스크톱. 앱과 게임을 창으로 열거나 각각의 페이지로 바로 열 수 있습니다.">
+  <link rel="icon" href="/icons/start.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="/apps/settings/wallpapers.css">
+  <link rel="stylesheet" href="/shell/theme.css">
+  <script>
+    // Decide before first paint whether the boot splash shows, so neither the desktop nor the splash flashes.
+    try {
+      if (sessionStorage.getItem('win11web.booted') === '1' || new URLSearchParams(location.search).has('open')
+        || matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('no-boot');
+    } catch { document.documentElement.classList.add('no-boot'); }
+  </script>
+  <script type="module" src="/shared/theme.js"></script>
+  <script type="module" src="/shell/desktop.js"></script>
+</head>
+<body class="desktop">
+  <main id="desktop" aria-label="바탕 화면">
+    <ul id="icons" class="icons" role="list"></ul>
+    <div id="windows"></div>
+    <div id="snap-preview" class="snap-preview" hidden></div>
+  </main>
+
+  <section id="start-menu" class="start-menu flyout" aria-label="시작 메뉴" hidden>
+    <input id="start-search" class="start-search" type="search" placeholder="앱, 게임, 설정 검색" autocomplete="off" aria-label="검색">
+    <div class="start-section-head">
+      <h2 class="start-heading">고정됨</h2>
+    </div>
+    <ul id="start-apps" class="start-apps" role="list"></ul>
+    <div id="start-recent-wrap">
+      <h2 class="start-heading">최근 사용</h2>
+      <ul id="start-recent" class="start-recent" role="list"></ul>
+    </div>
+    <footer class="start-footer">
+      <div class="start-user"><span class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4 21a8 8 0 0 1 16 0" fill="currentColor"/></svg>
+      </span>게스트</div>
+      <div class="power-wrap">
+        <button id="power" class="icon-btn" type="button" title="전원" aria-label="전원" aria-haspopup="menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 3v8M6.3 6.3a8 8 0 1 0 11.4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <ul id="power-menu" class="menu power-menu" role="menu" hidden>
+          <li><button type="button" role="menuitem" data-power="lock">잠금</button></li>
+          <li><button type="button" role="menuitem" data-power="restart">다시 시작</button></li>
+        </ul>
+      </div>
+    </footer>
+  </section>
+
+  <section id="quick-settings" class="quick-settings flyout" aria-label="빠른 설정" hidden>
+    <div class="qs-grid">
+      <button type="button" class="qs-tile" data-act="theme" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span>다크 모드</span>
+      </button>
+      <button type="button" class="qs-tile" data-act="night" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>야간 모드</span>
+      </button>
+      <button type="button" class="qs-tile" data-act="fullscreen" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>전체 화면</span>
+      </button>
+      <button type="button" class="qs-tile" data-act="wallpaper">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m3 16 5-5 4 4 3-3 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span>배경 바꾸기</span>
+      </button>
+    </div>
+    <label class="qs-slider">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+      <span class="sr-only">밝기</span>
+      <input id="brightness" type="range" min="30" max="100" value="100" aria-label="밝기">
+    </label>
+    <footer class="qs-footer">
+      <span>🔋 100%</span>
+      <button type="button" class="icon-btn" data-act="settings" title="모든 설정" aria-label="모든 설정">
+        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </footer>
+  </section>
+
+  <section id="notify-center" class="notify-center flyout" aria-label="알림 센터" hidden>
+    <div class="notify-panel">
+      <header class="panel-head">
+        <h2>알림</h2>
+        <button id="notify-clear" class="link-btn" type="button">모두 지우기</button>
+      </header>
+      <ul id="notify-list" class="notify-list" role="list"></ul>
+    </div>
+    <div class="calendar-panel">
+      <header class="panel-head">
+        <h2 id="cal-today"></h2>
+      </header>
+      <div class="cal-nav">
+        <span id="cal-title"></span>
+        <span>
+          <button id="cal-prev" class="icon-btn" type="button" aria-label="이전 달">
+            <svg viewBox="0 0 16 16" width="12" height="12"><path d="m4 10 4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+          <button id="cal-next" class="icon-btn" type="button" aria-label="다음 달">
+            <svg viewBox="0 0 16 16" width="12" height="12"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </span>
+      </div>
+      <div class="cal-week" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div id="cal-grid" class="cal-grid"></div>
+    </div>
+  </section>
+
+  <ul id="context-menu" class="menu context-menu" role="menu" hidden></ul>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <footer class="taskbar" aria-label="작업 표시줄">
+    <div class="taskbar-center">
+      <button id="start-btn" class="tb-btn start-btn" type="button" aria-label="시작" aria-expanded="false">
+        <svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true">
+          <defs><linearGradient id="win-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ccbf4"/><stop offset="1" stop-color="#0063b1"/></linearGradient></defs>
+          <path fill="url(#win-g)" d="M0 0h7.5v7.5H0zM8.5 0H16v7.5H8.5zM0 8.5h7.5V16H0zM8.5 8.5H16V16H8.5z"/>
+        </svg>
+      </button>
+      <button id="search-btn" class="tb-btn" type="button" aria-label="검색">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul id="taskbar-apps" class="taskbar-apps" role="list"></ul>
+    </div>
+    <div class="tray">
+      <button id="tray-btn" class="tray-btn" type="button" aria-label="빠른 설정" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="19.5" r="1.4" fill="currentColor"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="4.5" y="9.5" width="13" height="5" rx="1" fill="currentColor"/><path d="M22 10.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button id="clock-btn" class="tray-btn clock-btn" type="button" aria-label="알림 센터와 달력" aria-expanded="false">
+        <time id="clock" class="clock"></time>
+        <span id="notify-badge" class="notify-badge" hidden></span>
+      </button>
+    </div>
+  </footer>
+
+  <div id="screen-shade" class="screen-shade" aria-hidden="true"></div>
+
+  <div id="lock-screen" class="lock-screen" tabindex="-1" hidden>
+    <div class="lock-clock">
+      <div id="lock-time" class="lock-time"></div>
+      <div id="lock-date" class="lock-date"></div>
+    </div>
+    <div class="lock-signin">
+      <span class="lock-avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="64" height="64"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4 21a8 8 0 0 1 16 0" fill="currentColor"/></svg>
+      </span>
+      <div class="lock-name">게스트</div>
+      <div class="lock-welcome">환영합니다</div>
+    </div>
+    <p class="lock-hint">아무 곳이나 클릭하거나 키를 눌러 잠금 해제</p>
+  </div>
+
+  <div id="boot-screen" class="boot-screen">
+    <svg viewBox="0 0 16 16" width="88" height="88" aria-hidden="true"><path fill="#3a9ff0" d="M0 0h7.5v7.5H0zM8.5 0H16v7.5H8.5zM0 8.5h7.5V16H0zM8.5 8.5H16V16H8.5z"/></svg>
+    <div class="boot-spinner" role="progressbar" aria-label="시작하는 중">
+      <i></i><i></i><i></i><i></i><i></i>
+    </div>
+  </div>
+</body>
+</html>

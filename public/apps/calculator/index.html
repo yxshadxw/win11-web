@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/shared/app.css">
+<script type="module" src="/shared/theme.js"></script>
+<link rel="stylesheet" href="app.css"><title>표준 - 계산기</title>
+</head><body>
+<header class="toolbar"><button class="icon btn" id="menu-button" aria-label="모드 메뉴" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><h1 id="mode-title">표준</h1><button class="icon btn history-toggle" id="history-button" aria-label="기록 열기" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 5v5h5M4.5 10a8 8 0 1 1 1 7M12 7v5l3 2"/></svg></button></header>
+<nav id="menu" class="popup card" hidden aria-label="계산기 모드"><button class="btn" data-mode="표준">표준</button><button class="btn" data-mode="공학용">공학용</button></nav>
+<main class="layout"><section class="calculator" aria-label="계산기"><div class="readout"><div id="expression" aria-live="polite"></div><div id="display" aria-live="polite">0</div></div><div class="memory" id="memory"></div><div id="scientific" class="scientific" hidden></div><div id="keys" class="keys"></div></section><aside id="history" class="history card"><div class="history-head"><h2>기록</h2><button class="btn" id="clear-history">지우기</button></div><div id="history-list"></div></aside></main>
+<script src="parser.js"></script><script src="app.js"></script></body></html>

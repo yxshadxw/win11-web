@@ -1,0 +1,80 @@
+/* Shared Windows 11 style tokens for every app page.
+   Apps link this with: <link rel="stylesheet" href="/shared/app.css"> */
+:root {
+  --font: "Segoe UI Variable", "Segoe UI", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Code", Consolas, "D2Coding", monospace;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --accent: #005fb8;
+  --accent-hover: #1a6fc0;
+  --accent-text: #ffffff;
+  --bg: #f3f3f3;
+  --surface: #fbfbfb;
+  --surface-2: #ffffff;
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.09);
+  --text: #1b1b1b;
+  --text-2: #5d5d5d;
+  --danger: #c42b1c;
+  --success: #0f7b0f;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --accent: #60cdff;
+  --accent-hover: #7ad5ff;
+  --accent-text: #000000;
+  --bg: #202020;
+  --surface: #2b2b2b;
+  --surface-2: #323232;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
+  --text-2: #c5c5c5;
+  --danger: #ff99a4;
+  --success: #6ccb5f;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; padding: 4px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-2); cursor: pointer;
+}
+.btn:hover { background: var(--surface-hover); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+.btn.primary:hover { background: var(--accent-hover); }
+
+.input {
+  min-height: 32px; padding: 4px 10px;
+  border: 1px solid var(--border); border-bottom: 2px solid var(--text-2);
+  border-radius: var(--radius-sm); background: var(--surface-2);
+}
+.input:focus { outline: none; border-bottom-color: var(--accent); }
+
+.toolbar {
+  display: flex; align-items: center; gap: 4px; padding: 6px 8px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}

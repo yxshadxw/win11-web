@@ -1,0 +1,19 @@
+{
+  "apps": [
+    { "id": "explorer",   "name": "파일 탐색기", "icon": "📁", "image": "/icons/explorer.svg",   "url": "/apps/explorer/",   "width": 860,  "height": 540, "category": "앱" },
+    { "id": "chrome",     "name": "크롬",       "icon": "🌐", "image": "/icons/chrome.svg",     "url": "/apps/chrome/",     "width": 1100, "height": 700, "category": "앱" },
+    { "id": "notepad",    "name": "메모장",     "icon": "📝", "image": "/icons/notepad.svg",    "url": "/apps/notepad/",    "width": 720,  "height": 500, "category": "앱" },
+    { "id": "terminal",   "name": "터미널",     "icon": "⌨️", "image": "/icons/terminal.svg",   "url": "/apps/terminal/",   "width": 760,  "height": 480, "category": "앱" },
+    { "id": "photos",     "name": "사진",       "icon": "🖼️", "image": "/icons/photos.svg",     "url": "/apps/photos/",     "width": 900,  "height": 620, "category": "앱" },
+    { "id": "calculator", "name": "계산기",     "icon": "🧮", "image": "/icons/calculator.svg", "url": "/apps/calculator/", "width": 340,  "height": 540, "category": "앱" },
+    { "id": "paint",      "name": "그림판",     "icon": "🎨", "image": "/icons/paint.svg",      "url": "/apps/paint/",      "width": 900,  "height": 620, "category": "앱" },
+    { "id": "settings",   "name": "설정",       "icon": "⚙️", "image": "/icons/settings.svg",   "url": "/apps/settings/",   "width": 860,  "height": 560, "category": "앱" },
+    { "id": "webkart",    "name": "웹 카트",    "icon": "🏎️", "image": "/icons/webkart.svg",    "url": "/apps/webkart/",    "width": 960,  "height": 640, "category": "게임" },
+    { "id": "gostop",     "name": "고스톱",     "icon": "🎴", "image": "/icons/gostop.svg",     "url": "/apps/gostop/",     "width": 1100, "height": 720, "category": "게임" },
+    { "id": "shooter",    "name": "별빛 비행",  "icon": "🚀", "image": "/icons/shooter.svg",    "url": "/apps/shooter/",    "width": 560,  "height": 720, "category": "게임" },
+    { "id": "typing",     "name": "타자 레이서", "icon": "⌨️", "image": "/icons/typing.svg",     "url": "/apps/typing/",     "width": 860,  "height": 600, "category": "게임" },
+    { "id": "snake",      "name": "스네이크",   "icon": "🐍", "image": "/icons/snake.svg",      "url": "/apps/snake/",      "width": 560,  "height": 620, "category": "게임" },
+    { "id": "breakout",   "name": "벽돌깨기",   "icon": "🧱", "image": "/icons/breakout.svg",   "url": "/apps/breakout/",   "width": 640,  "height": 640, "category": "게임" },
+    { "id": "memory",     "name": "짝맞추기",   "icon": "🃏", "image": "/icons/memory.svg",     "url": "/apps/memory/",     "width": 620,  "height": 640, "category": "게임" }
+  ]
+}

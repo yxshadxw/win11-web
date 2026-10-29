@@ -1,0 +1,11 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const context = {};
+vm.createContext(context);
+vm.runInContext(fs.readFileSync('public/apps/terminal/parser.js', 'utf8') + '\nthis.calculate = calculate;', context);
+assert.equal(context.calculate('2 + 3 * 4'), 14);
+assert.equal(context.calculate('-(2 + 3) / 2'), -2.5);
+assert.throws(() => context.calculate('1 / 0'));
+assert.throws(() => context.calculate('1 + alert(1)'));
+assert.throws(() => context.calculate('2 3'));

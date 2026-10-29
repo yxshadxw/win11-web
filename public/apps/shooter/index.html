@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>별빛 비행</title>
+</head>
+<body>
+  <main class="app">
+    <header class="toolbar"><strong>✦ 별빛 비행</strong><span class="spacer"></span><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">다시 시작</button></header>
+    <section class="stage" aria-label="별빛 비행 게임 화면">
+      <canvas id="game" aria-label="우주 비행 게임"></canvas>
+      <div class="hud"><span id="score">점수 0</span><span id="wave">웨이브 1</span><span id="lives">생명 ♥♥♥</span><span id="bombs">폭탄 2</span><span id="multiplier">배율 ×1</span></div>
+      <div class="boss" id="boss" hidden><span>별무리 수호자</span><div><i id="boss-bar"></i></div></div>
+      <button class="bomb btn" id="bomb">폭탄</button>
+      <div class="overlay" id="overlay"><div class="card panel"><p class="eyebrow">STARLIGHT FLIGHT</p><h1 id="heading">별빛 비행</h1><p id="message">별 사이를 지나 끝없이 밀려오는 적을 물리치세요.</p><p class="help">방향키 / WASD 이동 · Space 자동 발사 전환 · B 폭탄<br>터치는 드래그로 이동하며 자동 발사합니다.</p><p id="best"></p><button class="btn primary" id="start">비행 시작</button></div></div>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

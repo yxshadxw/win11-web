@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="chrome-g" x2=".8" y2="1"><stop stop-color="#69ddf3"/><stop offset="1" stop-color="#1562c5"/></linearGradient></defs>
+  <circle cx="24" cy="24" r="20" fill="url(#chrome-g)"/>
+  <circle cx="24" cy="24" r="16" fill="none" stroke="#d6faff" stroke-width="2" opacity=".8"/>
+  <path d="M8 24h32M24 8c-7 6-7 26 0 32M24 8c7 6 7 26 0 32M11 16h26M11 32h26" fill="none" stroke="#d6faff" stroke-width="1.7" opacity=".8"/>
+</svg>

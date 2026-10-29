@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <title>고스톱</title>
+  <style>
+    body { display: flex; flex-direction: column; }
+    #game { flex: 1; width: 100%; border: 0; display: block; }
+    .offline { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; }
+    .offline .card { max-width: 440px; }
+    .offline h1 { font-size: 20px; font-weight: 600; margin: 8px 0; }
+    .offline p { color: var(--text-2); line-height: 1.6; }
+    .offline code { font-family: var(--mono); font-size: 12px; background: var(--bg); padding: 2px 6px; border-radius: 4px; }
+    [hidden] { display: none !important; }
+    .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div id="offline" class="offline" hidden>
+    <div class="card">
+      <div style="font-size:44px" aria-hidden="true">🎴</div>
+      <h1>고스톱 서버에 연결할 수 없어요</h1>
+      <p>고스톱(화투클럽)은 별도 서버에서 실행됩니다.<br>
+        현재 주소: <code id="target"></code></p>
+      <p>로컬에서는 <code>gostop-next</code> 폴더에서 <code>npm.cmd run dev</code>를 실행하고, 배포 시에는 <code>GOSTOP_URL</code> 환경 변수에 화투클럽 주소를 넣으세요.</p>
+      <div class="row">
+        <button id="retry" class="btn primary" type="button">다시 시도</button>
+        <a id="direct" class="btn" target="_blank" rel="noopener">새 탭에서 열기</a>
+      </div>
+    </div>
+  </div>
+  <iframe id="game" title="고스톱" allow="autoplay; fullscreen; clipboard-write" hidden></iframe>
+
+  <script type="module">
+    const offline = document.querySelector('#offline');
+    const frame = document.querySelector('#game');
+
+    async function gostopUrl() {
+      try {
+        const res = await fetch('/config.json', { cache: 'no-store' });
+        return (await res.json()).gostopUrl;
+      } catch {
+        return 'http://localhost:3000';
+      }
+    }
+
+    // A cross-origin server can't be probed with a normal fetch, so an opaque no-cors request
+    // only tells us whether anything answered at all.
+    async function reachable(url) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      try {
+        await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal });
+        return true;
+      } catch {
+        return false;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function connect() {
+      const url = await gostopUrl();
+      document.querySelector('#target').textContent = url;
+      document.querySelector('#direct').href = url;
+      if (await reachable(url)) {
+        offline.hidden = true;
+        frame.hidden = false;
+        if (frame.src !== url) frame.src = url;
+      } else {
+        frame.hidden = true;
+        offline.hidden = false;
+      }
+    }
+
+    document.querySelector('#retry').addEventListener('click', connect);
+    connect();
+  </script>
+</body>
+</html>

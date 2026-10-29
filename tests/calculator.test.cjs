@@ -1,0 +1,13 @@
+﻿const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert');
+const context = { Math };
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(__dirname + '/../public/apps/calculator/parser.js', 'utf8') + '\nthis.calculate = calculate;', context);
+assert.strictEqual(context.calculate('2+3*4', false), 14);
+assert.strictEqual(context.calculate('(2+3)*4', false), 20);
+assert.strictEqual(context.calculate('2^3^2', false), 512);
+assert.strictEqual(context.calculate('5!', false), 120);
+assert.ok(Math.abs(context.calculate('sin(30)', false) - 0.5) < 1e-10);
+assert.throws(() => context.calculate('1/0', false));
+console.log('Calculator parser tests passed');

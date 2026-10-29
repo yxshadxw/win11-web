@@ -1,0 +1,15 @@
+html, body { height: 100%; overflow: hidden; }
+body { display: flex; flex-direction: column; }
+.tabs { display: flex; align-items: end; height: 43px; padding: 6px 8px 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+.tab { display: flex; align-items: center; gap: 10px; height: 36px; min-width: 190px; padding: 0 12px; background: var(--surface-2); border-radius: 7px 7px 0 0; }
+.close { margin-left: auto; color: var(--text-2); }
+.plus { padding: 8px 15px; color: var(--text-2); }
+#terminal { flex: 1; min-height: 0; overflow: auto; padding: 16px; color: #eee; background: rgba(20, 22, 28, .97); font: 14px/1.55 var(--mono); cursor: text; }
+#output { white-space: pre-wrap; overflow-wrap: anywhere; }
+#command-form { display: flex; align-items: baseline; }
+#prompt { white-space: pre; }
+.input-wrap { display: flex; flex: 1; min-width: 0; position: relative; }
+#command { flex: 1; min-width: 0; padding: 0; border: 0; outline: 0; color: #fff; background: transparent; font: inherit; caret-color: #fff; }
+.cursor { width: 7px; height: 1em; background: #ddd; animation: blink 1s steps(1) infinite; pointer-events: none; }
+#command:not(:placeholder-shown) + .cursor { display: none; }
+@keyframes blink { 50% { opacity: 0; } }

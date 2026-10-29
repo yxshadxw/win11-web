@@ -1,0 +1,63 @@
+﻿html, body { width: 100%; height: 100%; overflow: hidden; }
+.app { height: 100%; display: flex; flex-direction: column; }
+.command-bar { min-height: 52px; padding: 8px 16px; justify-content: space-between; gap: 12px; z-index: 2; }
+.brand, .commands { display: flex; align-items: center; gap: 8px; }
+.brand { white-space: nowrap; font-size: 15px; }
+.brand-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: #087eae; color: white; font-weight: 800; font-style: italic; }
+.brand-sub { font-size: 12px; color: var(--text-2); font-weight: 400; }
+.commands .btn { min-width: 34px; }
+.commands svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #70a878; }
+canvas { display: block; width: 100%; height: 100%; }
+.hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; align-items: stretch; gap: 8px; pointer-events: none; }
+[hidden] { display: none !important; }
+.hud-card { min-width: 88px; padding: 9px 13px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; background: rgba(20,31,39,.82); color: white; box-shadow: 0 3px 12px #0002; }
+.hud-card span { display: block; color: #cedce2; font-size: 11px; }
+.hud-card strong { display: block; font-size: 21px; line-height: 1.15; }
+.hud-card strong small { font-size: 12px; color: #cedce2; }
+.hud-card.place strong { color: #83e5ff; }
+.times { min-width: 150px; display: grid; gap: 3px; }
+.times span { display: flex; justify-content: space-between; gap: 12px; }
+.times b, .boost-card b { color: white; font-variant-numeric: tabular-nums; }
+.boost-card { width: 150px; margin-left: auto; }
+.boost-card span { display: flex; justify-content: space-between; }
+.boost-meter { height: 6px; background: #ffffff36; border-radius: 6px; margin-top: 9px; overflow: hidden; }
+.boost-meter i { display: block; height: 100%; width: 0; background: #55dfff; transition: width .1s; }
+.lights { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); text-align: center; color: white; text-shadow: 0 2px 8px #0009; font-size: 22px; pointer-events: none; }
+.light-row { display: flex; gap: 8px; padding: 9px; margin-bottom: 8px; border-radius: 12px; background: #18212be6; }
+.light-row i { width: 22px; height: 22px; border-radius: 50%; background: #544344; }
+.light-row i.on { background: #ff564f; box-shadow: 0 0 12px #ff5e57; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(12,26,33,.53); overflow: auto; }
+.panel { width: min(100%, 510px); max-height: 100%; overflow: auto; padding: 26px; border-radius: 14px; box-shadow: var(--shadow); }
+.panel.compact { width: min(100%, 400px); }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+h1, h2, p { margin: 0; }
+h1 { font-size: 32px; letter-spacing: -.04em; margin-top: 4px; }
+h2 { font-size: 24px; margin: 6px 0; }
+.intro, .compact p { color: var(--text-2); margin: 4px 0 20px; }
+.section-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 700; }
+.section-label span { color: var(--text-2); font-size: 10px; letter-spacing: .06em; }
+.track-options { display: grid; gap: 8px; }
+.track-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px; text-align: left; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2); cursor: pointer; }
+.track-option:hover { background: var(--surface-hover); }
+.track-option:focus-visible, .touch-controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.track-option.selected { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.track-option strong, .track-option small { display: block; }
+.track-option small { color: var(--text-2); margin-top: 3px; }
+.track-art { display: grid; place-items: center; width: 68px; height: 45px; border-radius: 6px; background: #71ad78; color: #fff; font-size: 36px; line-height: 1; }
+.track-art.harbor { background: #d19a66; }
+.check { margin-left: auto; color: var(--accent); opacity: 0; padding: 0 8px; }
+.selected .check { opacity: 1; }
+.help { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; margin: 18px 0; color: var(--text-2); font-size: 12px; }
+.help strong { grid-column: 1 / -1; color: var(--text); }
+.start-button { width: 100%; min-height: 42px; justify-content: space-between; padding: 8px 14px; font-weight: 700; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.result-list { border-top: 1px solid var(--border); }
+.result-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 11px 2px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.result-row .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+.touch-controls { position: absolute; bottom: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; pointer-events: none; }
+.touch-group { display: flex; align-items: end; gap: 8px; }
+.touch-controls button { pointer-events: auto; touch-action: none; min-width: 52px; height: 52px; border: 1px solid #ffffff88; border-radius: 12px; background: #172630b8; color: white; font-weight: 700; user-select: none; }
+.touch-controls button:active { background: #087eae; }
+.touch-controls .drift-button { padding: 0 10px; }
+@media (max-width: 600px) { .command-bar { padding: 6px 8px; } .brand-sub, .commands button span { display: none; } .hud { top: 8px; left: 8px; right: 8px; gap: 4px; flex-wrap: wrap; } .hud-card { min-width: 65px; padding: 6px 8px; } .hud-card strong { font-size: 17px; } .times { min-width: 135px; } .boost-card { width: 120px; margin-left: 0; } .panel { padding: 18px; } .help { grid-template-columns: 1fr; } .help strong { grid-column: auto; } .touch-controls { left: 8px; right: 8px; bottom: 8px; } .touch-controls button { min-width: 43px; height: 48px; } }
