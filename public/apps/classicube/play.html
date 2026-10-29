@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>ClassiCube</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff; font: 14px "Segoe UI", "Malgun Gothic", system-ui, sans-serif; }
+  #canvas { display: block; width: 100vw; height: 100vh; border: 0; outline: none; }
+  #status { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; background: #0b1220; }
+  #status[hidden] { display: none; }
+  #status p { color: #b8c4d8; max-width: 440px; line-height: 1.6; }
+  progress { width: 260px; }
+  .bar { position: fixed; top: 6px; right: 6px; display: flex; gap: 4px; opacity: .35; transition: opacity .2s; z-index: 2; }
+  .bar:hover, .bar:focus-within { opacity: 1; }
+  .bar a, .bar button { padding: 4px 10px; border: 1px solid #fff6; border-radius: 4px; background: #0009; color: #fff; text-decoration: none; font: inherit; font-size: 12px; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="-1"></canvas>
+<div id="status"><div><h1>ClassiCube</h1><p id="message">게임을 내려받는 중…</p><progress id="progress" max="1"></progress></div></div>
+<div class="bar"><button id="full" type="button">전체 화면</button><a href="./">나가기</a></div>
+<script type="module" src="play.js"></script>
+</body>
+</html>

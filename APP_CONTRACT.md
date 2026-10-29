@@ -17,6 +17,9 @@ Rules:
   `--border`, `--radius`, ...) and its `.btn`, `.input`, `.toolbar`, `.card` classes so the app
   follows light/dark theme.
 - No external network requests: no CDNs, no web fonts, no remote images. Vanilla JS (ES modules) only.
+  Third-party code is vendored under `public/vendor/` with its license (e.g. v86). Downloads the
+  server can cache go through it (`mirror.mjs`). The one exception is ClassiCube, whose game client
+  is loaded from cs.classicube.net when a player starts it.
 - Fill the viewport (`html, body` 100% height) and stay usable from 320px to 1400px wide.
   Re-layout on `resize`.
 - Persist state in `localStorage` with keys prefixed `win11web.<id>.`; wrap access in try/catch.

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/shared/app.css">
+<script type="module" src="/shared/theme.js"></script>
+<link rel="stylesheet" href="app.css">
+<title>ClassiCube</title>
+</head>
+<body>
+<main class="launcher">
+  <section class="hero">
+    <div class="eyebrow">MINECRAFT CLASSIC 호환 · 오픈 소스 ClassiCube</div>
+    <h1>ClassiCube</h1>
+    <p>블록을 놓고 부수는 클래식 샌드박스를 브라우저에서 바로 합니다. 멀티플레이는 이 사이트 서버에 있는 하나의 월드를 모두가 함께 씁니다.</p>
+  </section>
+  <form class="card play" id="play">
+    <label class="field">닉네임 <small>영문·숫자·_ · 16자까지</small>
+      <input class="input" id="name" maxlength="16" pattern="[A-Za-z0-9_.]{1,16}" required autocomplete="nickname" spellcheck="false" placeholder="Steve_123">
+    </label>
+    <div class="modes">
+      <button class="btn primary" type="submit" name="mode" value="multi">멀티플레이 접속</button>
+      <button class="btn" type="submit" name="mode" value="single">싱글플레이</button>
+    </div>
+    <p class="error" id="error" role="alert"></p>
+  </form>
+  <section class="card server" aria-live="polite">
+    <div class="server-head"><span class="dot" id="dot"></span><strong id="server-name">서버 확인 중…</strong><span id="count"></span></div>
+    <p id="motd" class="motd"></p>
+    <ul id="who" class="who"></ul>
+  </section>
+  <section class="help">
+    <h2>조작</h2>
+    <dl>
+      <dt>WASD</dt><dd>이동</dd><dt>Space</dt><dd>점프 · 물에서 헤엄</dd>
+      <dt>마우스 왼쪽/오른쪽</dt><dd>부수기 / 놓기</dd><dt>B</dt><dd>블록 고르기</dd>
+      <dt>T</dt><dd>채팅 (영어만 · /help)</dd><dt>Esc</dt><dd>메뉴 · 마우스 풀기</dd>
+    </dl>
+    <p class="note">게임 프로그램은 ClassiCube 프로젝트(BSD 라이선스)에서 처음 실행할 때 받아옵니다. 마인크래프트 계정은 필요 없습니다. 이 서버는 이름 인증을 하지 않으니 비밀번호를 쓰지 마세요.</p>
+  </section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

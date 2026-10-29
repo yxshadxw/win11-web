@@ -2,3 +2,4 @@ node_modules/
 .codex-run/
 *.log
 tests/screenshots/
+data/
