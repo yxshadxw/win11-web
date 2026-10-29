@@ -53,3 +53,5 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 1. 이 폴더를 GitHub 저장소로 올립니다.
 2. Render에서 Blueprint로 `render.yaml`을 불러옵니다.
 3. `GOSTOP_URL`에 배포된 화투클럽 주소를 넣습니다 (예: `https://hwatu-club.onrender.com`).
+
+현재 배포: https://win11-web-64by.onrender.com/ — Render가 GitHub와 연결되어 `main`에 푸시하면 자동 배포됩니다. `/healthz`는 배포된 커밋을 알려줍니다.

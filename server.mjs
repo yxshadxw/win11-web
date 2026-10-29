@@ -74,7 +74,8 @@ const server = createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://local');
   if (pathname === '/healthz') {
     res.writeHead(200, { 'content-type': 'text/plain' });
-    return res.end('ok');
+    // Render sets RENDER_GIT_COMMIT, which shows which version is live.
+    return res.end(`ok ${(process.env.RENDER_GIT_COMMIT || 'dev').slice(0, 7)}`);
   }
   if (pathname === '/config.json') {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-cache' });
