@@ -42,17 +42,48 @@ export function isBlockedAddress(ip) {
     });
   }
   if (net.isIPv6(ip)) {
-    const v = ip.toLowerCase();
-    const mapped = v.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped) return isBlockedAddress(mapped[1]);
-    if (v === '::' || v === '::1') return true;
-    if (/^f[cd]/.test(v)) return true;            // fc00::/7 unique local
-    if (/^fe[89ab]/.test(v)) return true;         // fe80::/10 link local
-    if (/^ff/.test(v)) return true;               // multicast
-    if (/^64:ff9b:/.test(v)) return true;         // NAT64 can reach v4 internals
+    const b = ipv6Bytes(ip);
+    if (!b) return true;
+    const zero = (from, to) => b.slice(from, to).every((x) => x === 0);
+    const v4 = () => `${b[12]}.${b[13]}.${b[14]}.${b[15]}`;
+    // Forms that embed an IPv4 address, in any spelling (::ffff:7f00:1, ::ffff:127.0.0.1, ...):
+    if (zero(0, 10) && b[10] === 0xff && b[11] === 0xff) return isBlockedAddress(v4()); // ::ffff:0:0/96 mapped
+    if (zero(0, 12)) return isBlockedAddress(v4());                                     // ::/96 compatible, ::, ::1
+    if (zero(0, 8) && b[8] === 0xff && b[9] === 0xff && zero(10, 12)) return true;      // ::ffff:0:0:0/96 SIIT
+    if (b[0] === 0x00 && b[1] === 0x64 && b[2] === 0xff && b[3] === 0x9b) return true;  // 64:ff9b::/32 NAT64
+    if (b[0] === 0x20 && b[1] === 0x02) return true;                                    // 2002::/16 6to4
+    if (b[0] === 0x20 && b[1] === 0x01 && b[2] === 0 && b[3] === 0) return true;        // 2001::/32 Teredo
+    if ((b[0] & 0xfe) === 0xfc) return true;                                            // fc00::/7 unique local
+    if (b[0] === 0xfe && (b[1] & 0xc0) === 0x80) return true;                           // fe80::/10 link local
+    if (b[0] === 0xfe && (b[1] & 0xc0) === 0xc0) return true;                           // fec0::/10 site local
+    if (b[0] === 0xff) return true;                                                     // multicast
     return false;
   }
   return true;
+}
+
+/** Parses any valid IPv6 spelling (compressed, zone id, dotted IPv4 tail) into 16 bytes. */
+function ipv6Bytes(ip) {
+  let s = ip.toLowerCase().replace(/%.*$/, '');
+  const tail = s.match(/(\d+\.\d+\.\d+\.\d+)$/);
+  if (tail) {
+    const p = tail[1].split('.').map(Number);
+    s = s.slice(0, -tail[1].length) + `${((p[0] << 8) | p[1]).toString(16)}:${((p[2] << 8) | p[3]).toString(16)}`;
+  }
+  const halves = s.split('::');
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(':') : [];
+  const rest = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  const fill = halves.length === 2 ? 8 - head.length - rest.length : 0;
+  const groups = [...head, ...Array(fill).fill('0'), ...rest];
+  if (groups.length !== 8) return null;
+  const bytes = [];
+  for (const g of groups) {
+    const n = parseInt(g, 16);
+    if (!/^[0-9a-f]{1,4}$/.test(g) || Number.isNaN(n)) return null;
+    bytes.push(n >> 8, n & 0xff);
+  }
+  return bytes;
 }
 
 export function normalizeTarget(raw) {

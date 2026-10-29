@@ -9,6 +9,17 @@ test('blocks private, loopback and link-local addresses', () => {
   }
 });
 
+test('blocks IPv4 embedded in IPv6 in every spelling', () => {
+  for (const ip of ['::ffff:7f00:1', '::ffff:0a00:0001', '0:0:0:0:0:ffff:7f00:1', '::7f00:1', '::127.0.0.1',
+    '::ffff:a9fe:a9fe', '::ffff:0:7f00:1', '64:ff9b::7f00:1', '2002:7f00:1::', '2001:0:4136:e378::1', 'fec0::1', 'fe80::1%eth0']) {
+    assert.equal(isBlockedAddress(ip), true, ip);
+  }
+  // Node's URL parser rewrites the dotted form to hex; the normalized host must still be blocked.
+  assert.throws(() => normalizeTarget('http://[::ffff:127.0.0.1]/'), ProxyError);
+  assert.throws(() => normalizeTarget('http://[::ffff:169.254.169.254]/'), ProxyError);
+  assert.equal(isBlockedAddress('::ffff:808:808'), false); // 8.8.8.8 mapped is public
+});
+
 test('allows public addresses', () => {
   for (const ip of ['8.8.8.8', '1.1.1.1', '172.32.0.1', '2606:4700:4700::1111']) {
     assert.equal(isBlockedAddress(ip), false, ip);
