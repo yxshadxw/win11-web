@@ -137,7 +137,8 @@ export function subscribe(code, token, res) {
   const client = { res, color: colorOf(room, token) || 'spectator' };
   res.writeHead(200, {
     'content-type': 'text/event-stream; charset=utf-8',
-    'cache-control': 'no-store',
+    // no-transform keeps proxies from compressing (and so buffering) the stream
+    'cache-control': 'no-store, no-transform',
     connection: 'keep-alive',
     'x-accel-buffering': 'no',
   });
