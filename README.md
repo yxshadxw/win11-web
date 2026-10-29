@@ -19,7 +19,7 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 |---|---|
 | `/` | 데스크톱 |
 | `/?open=webkart` | 데스크톱을 열고 웹 카트 창 띄우기 (쉼표로 여러 개: `/?open=notepad,calculator`) |
-| `/apps/<id>/` | 앱 단독 페이지 (`explorer`, `chrome`, `notepad`, `terminal`, `photos`, `calculator`, `paint`, `settings`, `webkart`, `balloon`, `gostop`, `shooter`, `typing`, `snake`, `breakout`, `memory`) |
+| `/apps/<id>/` | 앱 단독 페이지 (`explorer`, `chrome`, `notepad`, `terminal`, `photos`, `calculator`, `paint`, `settings`, `pc`, `webkart`, `classicube`, `balloon`, `gostop`, `shooter`, `typing`, `snake`, `breakout`, `memory`) |
 | `/apps/chrome/?url=example.com` | 크롬 앱에서 바로 사이트 열기 |
 
 ## 데스크톱 기능
@@ -39,6 +39,26 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 체스 앱에서 상대를 '온라인'으로 고르고 방을 만든 뒤 6자리 코드나 초대 링크(`/apps/chess/?room=코드`)를 친구에게 보내면 됩니다. 서버(`chess-online.mjs`)가 모든 수를 `rules.js`로 검사하고 Server-Sent Events로 두 사람에게 실시간 전달합니다. 세 번째로 들어온 사람은 관전합니다. 대국이 끝나면 둘 다 재대결을 누를 때 색을 바꿔 새 게임이 시작됩니다. 방은 서버 메모리에만 있어서 서버가 재시작되면 사라집니다.
 
 `node tests/chess-online.e2e.cjs [주소]`는 브라우저 두 개로 실제 대국을 진행해 확인합니다.
+
+## 가상 PC (v86)
+
+`/apps/pc/` — 브라우저 안에서 x86 PC를 에뮬레이션합니다([v86](https://github.com/copy/v86), WebAssembly JIT). `public/vendor/v86/`에 에뮬레이터와 BIOS가 들어 있습니다.
+
+- **FreeDOS / KolibriOS / Linux**: 자유 소프트웨어 이미지는 서버가 처음 한 번 미러(`PC_IMAGE_BASE`, 기본 `https://i.copy.sh/`)에서 받아 캐시한 뒤 이 사이트 주소로 내려줍니다(`/api/pc/image/<id>`).
+- **EXE·ZIP 넣기**: 파일을 끌어다 놓으면 브라우저에서 FAT16 하드 디스크 이미지를 만들어 붙입니다(`disk.js`, 긴 파일 이름 지원). ZIP은 내장 `DecompressionStream`으로 풉니다. FreeDOS에서는 C: 드라이브가 되고, 부팅되면 자동으로 C:로 이동합니다. DOS용 EXE와 Windows용(PE) EXE를 구분해서 알려 줍니다.
+- **내 디스크 이미지**: Windows 95/98, MS-DOS처럼 직접 가진 이미지(.img/.iso)는 업로드 없이 브라우저 안에서만 읽어서 부팅합니다. 이때 넣은 파일은 두 번째 디스크(D:)가 됩니다. Windows용 EXE는 이렇게 실행합니다.
+- 상태 저장/불러오기(IndexedDB), 스크린샷(사진 폴더에 저장), Ctrl+Alt+Del, 마우스 잠금, 전체 화면, 텍스트 입력.
+
+GPU 가속이나 QEMU는 브라우저에서 쓸 수 없습니다(WebAssembly에는 하드웨어 가상화와 GPU 패스스루가 없음). 그래서 v86으로는 DOS·Windows 9x 시절 프로그램까지가 현실적이고, 자바 마인크래프트 같은 3D 게임은 아래 ClassiCube처럼 웹용으로 만들어진 클라이언트를 씁니다.
+
+## ClassiCube (마인크래프트 클래식 호환 멀티)
+
+`/apps/classicube/` — 오픈 소스 [ClassiCube](https://github.com/ClassiCube/ClassiCube) 웹 클라이언트(WebGL)로 마인크래프트 클래식 0.30 프로토콜 게임을 합니다. 멀티플레이 서버는 이 사이트에 직접 있습니다.
+
+- `classic/server.mjs` — 클래식 프로토콜 7 서버: 월드 전송(gzip), 블록 설치/파괴 검증(거리·속도·설치 가능 블록), 이동 중계, 채팅과 `/help` `/who` `/tp` `/spawn` `/me`, 같은 이름 재접속 처리, IP당 접속 제한
+- `websocket.mjs` — 의존성 없는 WebSocket 구현. 웹 클라이언트는 `wss://<사이트>:443/`에 `ClassiCube` 하위 프로토콜로 접속합니다. `CLASSIC_TCP_PORT`를 정하면 데스크톱 ClassiCube용 TCP 포트도 엽니다.
+- `classic/world.mjs` — 시드 기반 지형(언덕·호수·모래사장·광석·나무) 128×64×128. `CLASSIC_DATA` 폴더에 1분마다, 그리고 종료(SIGTERM) 때 저장합니다. render.yaml은 1GB 디스크를 붙여 배포해도 월드가 남습니다.
+- 게임 프로그램(ClassiCube.js)은 플레이할 때 cs.classicube.net에서 받고, 기본 텍스처(`/static/default.zip`)는 서버가 classicube.net에서 받아 캐시합니다. 마인크래프트 계정은 필요 없고, 이름 인증은 하지 않습니다.
 
 ## 물풍선 대작전 (온라인 레트로 아레나)
 
@@ -62,6 +82,8 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 ## 고스톱 연동
 
 고스톱은 `gostop-next`(화투클럽)를 iframe으로 띄웁니다. 주소는 환경 변수 `GOSTOP_URL`(기본값 `http://localhost:3000`)로 정합니다. 사이트를 https로 배포하면 화투클럽도 https 주소여야 합니다.
+
+연결이 안 될 때는 서버가 `/api/gostop/status`로 원인을 직접 확인해서 앱 화면에 알려 줍니다: 주소 미설정, 서버가 잠듦(Render 무료 서버 — 최대 2분 동안 자동으로 다시 확인), 연결 불가, iframe 금지 헤더(X-Frame-Options/CSP), https 페이지의 http 주소. 화투클럽도 잠들지 않게 하려면 GitHub 저장소 변수 `GOSTOP_URL`을 정하세요(keep-warm 워크플로가 함께 깨웁니다).
 
 ## Render 배포
 

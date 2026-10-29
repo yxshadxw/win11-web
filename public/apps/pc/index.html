@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/shared/app.css">
+<script type="module" src="/shared/theme.js"></script>
+<link rel="stylesheet" href="app.css">
+<title>가상 PC</title>
+</head>
+<body>
+<header class="toolbar bar">
+  <button class="btn primary" id="power" title="가상 머신 켜기/끄기"><span class="ico">⏻</span><span>켜기</span></button>
+  <button class="btn" id="reset" title="다시 시작" disabled><span class="ico">↻</span><span>다시 시작</span></button>
+  <button class="btn" id="cad" title="Ctrl+Alt+Del 보내기" disabled>Ctrl+Alt+Del</button>
+  <span class="sep"></span>
+  <button class="btn" id="mouse" title="마우스를 가상 머신에 고정 (Esc로 해제)" disabled><span class="ico">🖱</span><span>마우스 잠금</span></button>
+  <button class="btn" id="fullscreen" title="전체 화면" disabled><span class="ico">⛶</span><span>전체 화면</span></button>
+  <button class="btn" id="shot" title="스크린샷을 사진 폴더에 저장" disabled><span class="ico">📷</span><span>스크린샷</span></button>
+  <span class="sep"></span>
+  <button class="btn" id="save" title="지금 상태를 이 브라우저에 저장" disabled><span class="ico">💾</span><span>상태 저장</span></button>
+  <button class="btn" id="load" title="저장한 상태로 돌아가기" disabled><span class="ico">⏏</span><span>불러오기</span></button>
+  <button class="btn" id="type" title="글자를 키보드로 입력" disabled><span class="ico">⌨</span><span>입력</span></button>
+  <button class="btn ghost" id="panel-toggle" title="설정 패널" aria-expanded="true"><span class="ico">☰</span></button>
+</header>
+<main class="layout">
+  <aside class="panel" id="panel" aria-label="가상 머신 설정">
+    <h2>가상 머신</h2>
+    <ul class="machines" id="machines" role="radiogroup" aria-label="운영체제"></ul>
+    <div class="own" id="own-image" hidden>
+      <label class="drop small" for="image-file"><strong id="image-name">디스크 이미지 선택</strong><small>.img .ima .iso .vhd(고정) · 이 브라우저 안에서만 읽습니다</small></label>
+      <input type="file" id="image-file" accept=".img,.ima,.iso,.bin,.vhd,.dsk" hidden>
+    </div>
+    <h2>프로그램·게임 넣기</h2>
+    <label class="drop" id="drop" for="files"><strong>EXE·ZIP·파일을 여기에 끌어다 놓기</strong><small id="files-note">FreeDOS에서는 C: 드라이브, 내 이미지로 부팅하면 D: 드라이브가 됩니다. ZIP은 풀어서 넣습니다.</small></label>
+    <input type="file" id="files" multiple hidden>
+    <ul class="files" id="file-list"></ul>
+    <details class="advanced">
+      <summary>하드웨어</summary>
+      <label class="field">메모리 <select class="input" id="memory"><option value="16">16MB</option><option value="32">32MB</option><option value="64" selected>64MB</option><option value="128">128MB</option><option value="256">256MB</option><option value="512">512MB</option></select></label>
+      <label class="field">비디오 메모리 <select class="input" id="vga"><option value="8">8MB</option><option value="16">16MB</option><option value="32">32MB</option></select></label>
+      <label class="check"><input type="checkbox" id="acpi"> ACPI (Windows 2000 이상)</label>
+    </details>
+    <p class="legal">FreeDOS·KolibriOS·Linux는 자유 소프트웨어라 바로 받을 수 있습니다. Windows 같은 상용 OS는 직접 가진 설치 이미지를 넣어 주세요.</p>
+  </aside>
+  <section class="screen-wrap" id="screen-wrap">
+    <div id="screen" class="screen" tabindex="0" aria-label="가상 머신 화면">
+      <div class="text-layer"></div>
+      <canvas class="gfx"></canvas>
+    </div>
+    <div class="idle" id="idle">
+      <div class="idle-card card">
+        <div class="logo" aria-hidden="true">🖥️</div>
+        <h1>가상 PC</h1>
+        <p>브라우저 안에서 x86 PC를 에뮬레이션합니다 (v86). 왼쪽에서 운영체제를 고르고 <b>켜기</b>를 누르세요. 옛날 DOS 게임이나 EXE는 파일을 끌어다 놓으면 됩니다.</p>
+        <button class="btn primary" id="idle-start">켜기</button>
+        <p class="progress" id="progress" hidden><progress id="progress-bar" max="1" value="0"></progress><span id="progress-text"></span></p>
+        <p class="error" id="error" role="alert"></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="status" id="status"><span id="state">꺼짐</span><span id="speed"></span><span id="disk"></span></footer>
+<dialog id="type-dialog"><form method="dialog" class="type-form"><h2>키보드로 입력</h2><textarea class="input" id="type-text" rows="4" placeholder="예: CD GAMES&#10;DOOM"></textarea><p class="hint">줄바꿈은 Enter로 입력됩니다.</p><div class="row"><button class="btn" value="cancel">취소</button><button class="btn primary" id="type-send" value="send">보내기</button></div></form></dialog>
+<script type="module" src="app.js"></script>
+</body>
+</html>

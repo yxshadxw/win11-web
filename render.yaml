@@ -12,3 +12,11 @@ services:
       # Address of the deployed gostop-next (hwatu-club) service, e.g. https://hwatu-club.onrender.com
       - key: GOSTOP_URL
         sync: false
+      # ClassiCube block world is saved here (the disk below keeps it across deploys).
+      - key: CLASSIC_DATA
+        value: /var/data
+      # Optional: CLASSIC_NAME, CLASSIC_MOTD, CLASSIC_MAX_PLAYERS, PC_IMAGE_BASE, CLASSICUBE_CLIENT_URL
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
