@@ -1,0 +1,41 @@
+.app { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.commands { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+.brand { display: flex; align-items: center; gap: 8px; margin-right: auto; white-space: nowrap; }
+.brand strong { font-size: 16px; }
+.brand small { color: var(--text-2); }
+.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; color: white; border-radius: 8px; background: linear-gradient(145deg, #54b9ef, #1264b6); font-size: 20px; }
+.buttons { display: flex; flex-wrap: wrap; gap: 5px; }
+.btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.hud { display: flex; align-items: center; gap: 24px; padding: 9px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.hud div { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.hud span, footer { color: var(--text-2); font-size: 12px; }
+.hud strong { font-variant-numeric: tabular-nums; font-size: 16px; }
+.hud p { margin: 0 0 0 auto; color: var(--text-2); font-size: 12px; }
+.table-wrap { position: relative; flex: 1; overflow: auto; background: radial-gradient(ellipse at 50% 10%, #247c70, #10574f 70%, #10483f); }
+:root[data-theme="dark"] .table-wrap { background: radial-gradient(ellipse at 50% 10%, #205b58, #153e3d 75%); }
+.board { --card-w: min(10.5vw, 92px); --card-h: calc(var(--card-w) * 1.4); --gap: calc(var(--card-w) * .16); --step: calc(var(--card-w) * .33); position: relative; width: calc(var(--card-w) * 7 + var(--gap) * 6); min-height: 100%; margin: auto; padding-top: 22px; }
+.slot { position: absolute; width: var(--card-w); height: var(--card-h); border: 1.5px solid #ffffff55; border-radius: 7px; background: #001f1a33; color: #ffffff70; display: grid; place-items: center; font-size: calc(var(--card-w) * .35); }
+.playing-card { position: absolute; width: var(--card-w); height: var(--card-h); border: 1px solid #d7dce1; border-radius: 7px; background: linear-gradient(145deg, #fff, #f2f6fb); color: #203449; box-shadow: 0 3px 8px #001a1745; cursor: grab; touch-action: none; user-select: none; transition: left .18s ease, top .18s ease, box-shadow .18s; padding: 0; text-align: left; }
+.playing-card.red { color: #c53743; }
+.playing-card.back { background: linear-gradient(135deg, #6db8e9, #13529c); border: 3px solid #e5f4ff; }
+.playing-card.back::after { content: ''; position: absolute; inset: 4px; border: 1px solid #ffffff77; border-radius: 3px; background: repeating-linear-gradient(45deg, #ffffff18 0 2px, transparent 2px 7px); }
+.board[data-back="red"] .back { background: linear-gradient(135deg, #ed8c88, #a32738); }
+.board[data-back="purple"] .back { background: linear-gradient(135deg, #ba9be9, #583789); }
+.corner { position: absolute; top: 3%; left: 8%; display: flex; flex-direction: column; align-items: center; font-weight: 700; line-height: .95; font-size: calc(var(--card-w) * .22); }
+.pip { position: absolute; left: 0; right: 0; top: 27%; text-align: center; font-size: calc(var(--card-w) * .5); }
+.playing-card.selected, .playing-card.hint, .slot.hint { outline: 3px solid #ffdc75; outline-offset: 2px; }
+.playing-card:focus-visible, .slot:focus-visible { outline: 3px solid #ffe396; outline-offset: 2px; }
+.playing-card.dragging { transition: none; cursor: grabbing; pointer-events: none; }
+.paused { position: absolute; inset: 0; display: grid; place-items: center; background: #102a2bb8; }
+.paused[hidden] { display: none; }
+.pause-panel { text-align: center; min-width: 230px; box-shadow: var(--shadow); }
+footer { padding: 7px 16px; background: var(--surface); }
+dialog { max-width: min(420px, calc(100% - 32px)); width: 100%; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+dialog::backdrop { background: #0008; }
+dialog h2 { margin: 0 0 18px; } dialog h3 { margin: 24px 0 10px; }
+.settings-grid { display: grid; gap: 12px; }.settings-grid label { display: grid; gap: 6px; }
+#stats { color: var(--text-2); line-height: 1.8; }.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.win-symbol { color: #d99a21; font-size: 42px; }.win-animation .playing-card { animation: bounce 1s ease-in-out infinite alternate; animation-delay: calc(var(--delay) * -80ms); }
+@keyframes bounce { to { transform: translateY(-18px) rotate(5deg); } }
+@media (max-width: 600px) { .commands { padding: 8px; }.brand { width: 100%; }.buttons { gap: 4px; }.buttons .btn { padding: 4px 7px; font-size: 12px; }.hud { gap: 12px; padding: 8px; flex-wrap: wrap; }.hud p { order: 2; width: 100%; }.board { --card-w: min(12.3vw, 72px); --gap: calc(var(--card-w) * .12); padding-top: 14px; } footer { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

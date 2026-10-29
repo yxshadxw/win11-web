@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <title>게임</title>
+  <style>
+    body { display: flex; flex-direction: column; }
+    .bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .crumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+    .crumb strong { color: var(--text); font-weight: 600; }
+    .bar .input { margin-left: auto; width: min(240px, 45vw); }
+    main { flex: 1; overflow-y: auto; padding: 20px; }
+    .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
+    .tile {
+      width: 100%; padding: 14px 6px 10px; border: 1px solid transparent; border-radius: 6px; background: none;
+      display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: default; font-size: 12px;
+    }
+    .tile img { width: 56px; height: 56px; transition: transform 160ms cubic-bezier(.1,.9,.2,1); }
+    .tile:hover { background: var(--surface-hover); }
+    .tile:hover img { transform: translateY(-2px) scale(1.04); }
+    .tile:focus-visible { outline: none; background: var(--surface-hover); border-color: var(--accent); }
+    .tile .badge { font-size: 11px; color: var(--accent); }
+    .empty { color: var(--text-2); padding: 32px 0; text-align: center; }
+    footer { padding: 6px 16px; font-size: 12px; color: var(--text-2); background: var(--surface); border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <span class="crumb">바탕 화면 › <strong>게임</strong></span>
+    <input id="q" class="input" type="search" placeholder="게임 검색" aria-label="게임 검색">
+  </div>
+  <main><ul id="grid" class="grid" role="list"></ul></main>
+  <footer id="count"></footer>
+
+  <script type="module">
+    const ONLINE = new Set(['chess', 'gostop']);
+    const grid = document.querySelector('#grid');
+    const q = document.querySelector('#q');
+    let games = [];
+
+    function open(app) {
+      // Inside the desktop, ask the shell for a new window; standalone, just navigate.
+      if (window.parent !== window) window.parent.postMessage({ type: 'win11web-open', id: app.id }, location.origin);
+      else location.href = app.url;
+    }
+
+    function render() {
+      const term = q.value.trim().toLowerCase();
+      const shown = games.filter((g) => !term || g.name.toLowerCase().includes(term) || g.id.includes(term));
+      grid.replaceChildren(...shown.map((app) => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tile';
+        btn.title = `${app.name} — ${app.url}`;
+        const img = document.createElement('img');
+        img.src = app.image;
+        img.alt = '';
+        img.addEventListener('error', () => { img.replaceWith(Object.assign(document.createElement('span'), { textContent: app.icon, style: 'font-size:44px' })); }, { once: true });
+        btn.append(img, app.name);
+        if (ONLINE.has(app.id)) btn.append(Object.assign(document.createElement('span'), { className: 'badge', textContent: '온라인 대전' }));
+        btn.addEventListener('dblclick', () => open(app));
+        btn.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(app); });
+        btn.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') open(app); });
+        li.append(btn);
+        return li;
+      }));
+      if (!shown.length) grid.replaceChildren(Object.assign(document.createElement('li'), { className: 'empty', textContent: '일치하는 게임이 없습니다.' }));
+      document.querySelector('#count').textContent = `항목 ${shown.length}개 · 두 번 클릭해서 실행`;
+    }
+
+    const res = await fetch('/apps/registry.json');
+    games = (await res.json()).apps.filter((a) => a.category === '게임');
+    q.addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>

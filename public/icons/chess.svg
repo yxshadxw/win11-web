@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="chess-bg" x2="1" y2="1"><stop stop-color="#a6d8cb"/><stop offset="1" stop-color="#4c827d"/></linearGradient><linearGradient id="chess-piece" x2=".8" y2="1"><stop stop-color="#fffdf2"/><stop offset="1" stop-color="#d4c3a7"/></linearGradient></defs>
+  <rect x="5" y="5" width="38" height="38" rx="8" fill="url(#chess-bg)"/><path d="M12 36h24v3H12z" fill="#305f60" opacity=".5"/>
+  <path d="M24 9v8m-4-4h8M17 19c-3 4 0 7 3 9l-3 5h14l-3-5c3-2 6-5 3-9-2-3-5-1-7 2-2-3-5-5-7-2zM15 33h18l2 4H13z" fill="url(#chess-piece)" stroke="#806c58" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

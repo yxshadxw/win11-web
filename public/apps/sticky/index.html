@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>스티커 메모</title>
+</head>
+<body>
+  <main class="layout">
+    <aside class="sidebar"><header><div><span class="eyebrow">생각을 한곳에</span><h1>스티커 메모</h1></div><button class="btn primary" id="add" aria-label="새 메모">＋</button></header><input class="input search" id="search" type="search" placeholder="메모 검색" aria-label="메모 검색"><div id="list" class="list"></div></aside>
+    <section class="workspace"><div id="empty" class="empty"><div class="empty-icon">✎</div><h2>기억하고 싶은 순간</h2><p>새 메모를 만들어 생각을 담아 보세요.</p><button class="btn primary" id="empty-add">새 메모</button></div><article id="note" class="note" hidden><div class="note-top"><div id="colors" class="colors" aria-label="메모 색상"></div><button class="btn" id="delete" aria-label="메모 삭제">삭제</button></div><div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="메모 내용" data-placeholder="여기에 메모하세요..."></div><div class="format" role="toolbar" aria-label="서식"><button class="btn" data-command="bold" title="굵게"><b>B</b></button><button class="btn" data-command="italic" title="기울임"><i>I</i></button><button class="btn" data-command="underline" title="밑줄"><u>U</u></button><button class="btn" data-command="strikeThrough" title="취소선"><s>S</s></button><button class="btn" data-command="insertUnorderedList" title="글머리 기호">☷</button><span>자동 저장됨</span></div></article></section>
+  </main>
+  <dialog id="confirm"><h2>메모를 삭제할까요?</h2><p>삭제한 메모는 복구할 수 없습니다.</p><div class="actions"><button class="btn" id="cancel">취소</button><button class="btn primary" id="confirm-delete">삭제</button></div></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

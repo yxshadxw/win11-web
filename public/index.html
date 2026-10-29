@@ -24,12 +24,48 @@
     <ul id="icons" class="icons" role="list"></ul>
     <div id="windows"></div>
     <div id="snap-preview" class="snap-preview" hidden></div>
+    <div id="marquee" class="marquee" hidden></div>
   </main>
+
+  <section id="task-view" class="task-view" aria-label="작업 보기" hidden>
+    <h2 class="tv-title">열린 창</h2>
+    <ul id="tv-list" class="tv-list" role="list"></ul>
+  </section>
+
+  <section id="widgets" class="widgets flyout" aria-label="위젯" hidden>
+    <header class="wg-head">
+      <div>
+        <div id="wg-greet" class="wg-greet"></div>
+        <div id="wg-date" class="wg-date"></div>
+      </div>
+    </header>
+    <div class="wg-grid">
+      <article class="wg-card wg-weather">
+        <header class="wg-card-head">
+          <h3>날씨</h3>
+          <select id="wg-city" class="wg-select" aria-label="도시"></select>
+        </header>
+        <div id="wg-weather-body" class="wg-weather-body">불러오는 중…</div>
+        <button type="button" class="link-btn" data-open="weather">자세한 예보 보기</button>
+      </article>
+      <article class="wg-card">
+        <header class="wg-card-head"><h3>오늘의 게임</h3><button type="button" class="link-btn" data-open="games">모두 보기</button></header>
+        <div id="wg-picks" class="wg-picks"></div>
+      </article>
+      <article class="wg-card wg-note-card">
+        <header class="wg-card-head"><h3>빠른 메모</h3></header>
+        <textarea id="wg-note" class="wg-note" placeholder="여기에 적으면 자동으로 저장돼요" aria-label="빠른 메모"></textarea>
+      </article>
+    </div>
+  </section>
+
+  <div id="tb-preview" class="tb-preview" role="tooltip" hidden></div>
 
   <section id="start-menu" class="start-menu flyout" aria-label="시작 메뉴" hidden>
     <input id="start-search" class="start-search" type="search" placeholder="앱, 게임, 설정 검색" autocomplete="off" aria-label="검색">
     <div class="start-section-head">
-      <h2 class="start-heading">고정됨</h2>
+      <h2 id="start-apps-title" class="start-heading">고정됨</h2>
+      <button id="all-apps" class="pill-btn" type="button" aria-pressed="false">모든 앱 <span aria-hidden="true">›</span></button>
     </div>
     <ul id="start-apps" class="start-apps" role="list"></ul>
     <div id="start-recent-wrap">
@@ -116,6 +152,10 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
   <footer class="taskbar" aria-label="작업 표시줄">
+    <button id="widget-btn" class="widget-chip" type="button" aria-label="위젯" aria-expanded="false">
+      <span class="wg-chip-icon" aria-hidden="true">⛅</span>
+      <span class="wg-chip-text">날씨</span>
+    </button>
     <div class="taskbar-center">
       <button id="start-btn" class="tb-btn start-btn" type="button" aria-label="시작" aria-expanded="false">
         <svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true">
@@ -125,6 +165,9 @@
       </button>
       <button id="search-btn" class="tb-btn" type="button" aria-label="검색">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button id="taskview-btn" class="tb-btn" type="button" aria-label="작업 보기" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="5" width="11" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="16" y="7" width="5" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
       </button>
       <ul id="taskbar-apps" class="taskbar-apps" role="list"></ul>
     </div>

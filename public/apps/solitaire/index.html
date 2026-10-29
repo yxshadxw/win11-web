@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>솔리테어</title>
+</head>
+<body>
+  <main class="app">
+    <header class="toolbar commands">
+      <div class="brand"><span class="brand-mark">♠</span><strong>솔리테어</strong><small>클론다이크</small></div>
+      <div class="buttons">
+        <button class="btn primary" id="new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>새 게임</button>
+        <button class="btn" id="undo" title="실행 취소 (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h10a5 5 0 0 1 0 10"/></svg>실행 취소</button>
+        <button class="btn" id="hint"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z"/></svg>힌트</button>
+        <button class="btn" id="auto">자동 완성</button>
+        <button class="btn" id="settings">설정</button>
+      </div>
+    </header>
+    <div class="hud"><div><span>점수</span><strong id="score">0</strong></div><div><span>이동</span><strong id="moves">0</strong></div><div><span>시간</span><strong id="time">00:00</strong></div><p id="message" aria-live="polite">카드를 선택하거나 끌어 놓으세요.</p><button class="btn" id="pause">일시 정지</button></div>
+    <section class="table-wrap" aria-label="솔리테어 게임판"><div id="board" class="board"></div><div class="paused" id="paused" hidden><div class="card pause-panel"><h2>일시 정지</h2><p>준비되면 게임을 계속하세요.</p><button class="btn primary" id="resume">계속하기</button></div></div></section>
+    <footer>카드를 선택한 뒤 놓을 위치를 선택하세요 · 두 번 누르면 기초 더미로 이동 · Ctrl+Z 실행 취소</footer>
+  </main>
+  <dialog id="settings-dialog"><h2>게임 설정</h2><div class="settings-grid"><label>카드 뽑기 <select class="input" id="draw-count"><option value="1">한 장</option><option value="3">세 장</option></select></label><label>카드 뒷면 <select class="input" id="back-color"><option value="blue">파랑</option><option value="red">빨강</option><option value="purple">보라</option></select></label></div><h3>통계</h3><div id="stats"></div><div class="dialog-actions"><button class="btn primary" id="close-settings">완료</button></div></dialog>
+  <dialog id="win-dialog"><div class="win-symbol">✦</div><h2>축하합니다!</h2><p id="win-text"></p><div class="dialog-actions"><button class="btn" id="win-close">계속 보기</button><button class="btn primary" id="win-new">새 게임</button></div></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

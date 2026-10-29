@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>에어 하키</title>
+</head>
+<body>
+  <header class="toolbar"><strong>에어 하키</strong><span class="spacer"></span><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">새 경기</button></header>
+  <main><div class="score"><div><small id="top-label">상대</small><strong id="top-score">0</strong></div><span>FIRST TO 7</span><div><small>나</small><strong id="bottom-score">0</strong></div></div><div class="rink"><canvas id="game" aria-label="에어 하키 경기장"></canvas><div id="flash" aria-live="polite"></div></div><div class="touch-controls" aria-label="방향 조작"><button class="btn" data-key="ArrowLeft">◀</button><button class="btn" data-key="ArrowUp">▲</button><button class="btn" data-key="ArrowDown">▼</button><button class="btn" data-key="ArrowRight">▶</button></div><p class="hint">말렛을 드래그하거나 방향키로 움직이세요.</p></main>
+  <div class="overlay" id="overlay"><section class="card panel"><div class="eyebrow">NEON TABLE SPORTS</div><h1 id="overlay-title">에어 하키</h1><p id="overlay-text">빛나는 퍽을 상대 골대에 넣으세요. 먼저 7점을 얻으면 승리합니다.</p><div id="setup"><label>경기 방식 <select class="input" id="mode"><option value="easy">AI · 쉬움</option><option value="medium" selected>AI · 보통</option><option value="hard">AI · 어려움</option><option value="two">2인 대전</option></select></label><p class="help">마우스나 터치로 말렛을 드래그하세요. 2인 대전에서는 각자 자기 쪽을 터치합니다. 방향키는 아래쪽, WASD는 위쪽을 조작합니다. P / Esc로 일시 정지.</p><p id="record"></p></div><div class="panel-actions"><button class="btn primary" id="start">경기 시작</button><button class="btn" id="resume" hidden>계속하기</button></div></section></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

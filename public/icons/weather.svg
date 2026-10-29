@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="weather-sky" x2="1" y2="1"><stop stop-color="#83dfff"/><stop offset="1" stop-color="#1676d2"/></linearGradient>
+    <linearGradient id="weather-sun" x2="0" y2="1"><stop stop-color="#fff4a3"/><stop offset="1" stop-color="#ffb52e"/></linearGradient>
+    <linearGradient id="weather-cloud" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#c9e8fa"/></linearGradient>
+  </defs>
+  <rect x="4" y="4" width="40" height="40" rx="10" fill="url(#weather-sky)"/>
+  <circle cx="29" cy="18" r="9" fill="url(#weather-sun)"/>
+  <path d="M13 36a7 7 0 0 1-.4-14 10 10 0 0 1 18.8 1.5A6.3 6.3 0 0 1 34 36z" fill="url(#weather-cloud)"/>
+</svg>

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>오목</title>
+</head>
+<body>
+  <header><div><h1>오목</h1><p>다섯 돌을 이어 보세요</p></div><button class="btn primary" id="restart">새 게임</button></header>
+  <main><section class="play"><div class="toolbar controls"><label>상대 <select class="input" id="mode"><option value="local">두 사람</option><option value="ai">컴퓨터</option></select></label><label>난이도 <select class="input" id="level"><option value="1">쉬움</option><option value="2">보통</option><option value="3" selected>어려움</option></select></label><button class="btn" id="undo">되돌리기</button><label><input type="checkbox" id="numbers"> 수순</label><button class="btn" id="sound">소리 켬</button></div><div class="board-wrap"><div class="board" id="board" role="grid" aria-label="오목판"></div></div><div id="status" class="status" role="status"></div></section><aside class="card"><h2>대국 기록</h2><div id="record"></div><p>금수 없이 가로, 세로, 대각선으로 다섯 개 이상 이으면 승리합니다.</p><p>교차점을 선택하거나 화살표 키와 Enter로 돌을 놓으세요.</p></aside></main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="platformer-sky" x2="0" y2="1"><stop stop-color="#bfeeff"/><stop offset="1" stop-color="#77a5e1"/></linearGradient><linearGradient id="platformer-star" x2="0" y2="1"><stop stop-color="#fff5b2"/><stop offset="1" stop-color="#ffc45f"/></linearGradient></defs>
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#platformer-sky)"/><path d="M5 34h38v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" fill="#5a927e"/><path d="M5 34h38v4H5z" fill="#a8d5a2"/>
+  <path d="m29 9 2.6 5.3 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.3 2.8 1-5.9-4.2-4.2 5.8-.8z" fill="url(#platformer-star)"/><rect x="12" y="24" width="13" height="13" rx="3" fill="#4269a4"/><rect x="14" y="19" width="9" height="10" rx="3" fill="#ffe0c6"/><circle cx="17" cy="23" r="1" fill="#304265"/><circle cx="21" cy="23" r="1" fill="#304265"/>
+</svg>

@@ -130,6 +130,8 @@ export class WindowManager extends EventTarget {
     if (s.minimized) {
       s.minimized = false;
       s.el.classList.remove('minimized');
+      s.el.animate?.([{ transform: 'translateY(24px) scale(.96)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+        { duration: 180, easing: 'cubic-bezier(.1, .9, .2, 1)' });
     }
     if (this.activeId !== id) s.el.style.zIndex = String(++this.z);
     this.activeId = id;
@@ -158,9 +160,22 @@ export class WindowManager extends EventTarget {
 
   minimize(id) {
     const s = this.windows.get(id);
-    if (!s) return;
+    if (!s || s.minimized) return;
     s.minimized = true;
-    s.el.classList.add('minimized');
+    const target = this.minimizeTarget?.(s.app.id);
+    const done = () => { s.el.classList.add('minimized'); };
+    if (target && !matchMedia('(prefers-reduced-motion: reduce)').matches && s.el.animate) {
+      // Shrink toward the taskbar button, then hide.
+      const r = s.el.getBoundingClientRect();
+      const dx = target.left + target.width / 2 - (r.left + r.width / 2);
+      const dy = target.top + target.height / 2 - (r.top + r.height / 2);
+      s.el.animate(
+        [{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(.12)`, opacity: 0 }],
+        { duration: 220, easing: 'cubic-bezier(.4, 0, .9, .6)' },
+      ).finished.then(done, done);
+    } else {
+      done();
+    }
     this.blurTo(id);
   }
 

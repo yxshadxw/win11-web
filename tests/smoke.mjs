@@ -42,6 +42,25 @@ await visit('snap-flyout', '/?open=notepad', { width: 1366, height: 800 }, async
   const w = await page.locator('.window').boundingBox();
   if (Math.abs(w.width - 683) > 4) problems.push(`snap-flyout: zone width ${w.width}`);
 });
+await visit('widgets', '/', { width: 1366, height: 800 }, async (page) => {
+  await page.click('#widget-btn'); await page.waitForTimeout(1500);
+  if (!(await page.locator('#widgets').isVisible())) problems.push('widgets: panel not shown');
+});
+await visit('task-view', '/?open=notepad,calculator,chess', { width: 1366, height: 800 }, async (page) => {
+  await page.waitForTimeout(800);
+  await page.click('#taskview-btn'); await page.waitForTimeout(400);
+  const cards = await page.locator('.tv-card').count();
+  if (cards !== 3) problems.push(`task-view: expected 3 cards, got ${cards}`);
+});
+await visit('start-all', '/', { width: 1366, height: 800 }, async (page) => {
+  await page.click('#start-btn'); await page.click('#all-apps'); await page.waitForTimeout(300);
+});
+await visit('marquee', '/', { width: 1366, height: 800 }, async (page) => {
+  await page.mouse.move(600, 400); await page.mouse.down(); await page.mouse.move(5, 5, { steps: 6 });
+  await page.screenshot({ path: `${out}/marquee-drag.png` }); await page.mouse.up();
+  const n = await page.locator('.desk-icon.selected').count();
+  if (n < 3) problems.push(`marquee: only ${n} icons selected`);
+});
 await visit('desktop-mobile', '/?open=notepad', { width: 390, height: 844 });
 await visit('desktop-windows', '/?open=explorer,calculator', { width: 1366, height: 800 }, async (page) => {
   const sizes = await page.$$eval('.window', (els) => els.map((e) => [e.offsetWidth, e.offsetHeight]));

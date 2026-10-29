@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>별조각 모험</title>
+</head><body>
+  <main class="app">
+    <header class="toolbar"><strong>✦ 별조각 모험</strong><span class="spacer"></span><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">다시 시작</button></header>
+    <section class="stage" aria-label="게임 화면">
+      <canvas id="game" aria-label="별조각 모험 게임 화면"></canvas>
+      <div class="hud"><span id="level-label"></span><span id="shards"></span><span id="time"></span></div>
+      <div class="touch" aria-label="터치 조작"><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><button data-key="jump">점프</button></div>
+      <div class="overlay" id="overlay"><section class="panel card"><div class="eyebrow">STAR SHARD ADVENTURE</div><h1 id="heading">별조각 모험</h1><p id="message">작은 여행자와 함께 흩어진 별조각을 모아 보세요.</p><div id="selection"><label>여정 선택 <select class="input" id="level"></select></label><p class="help">← → 또는 A D 이동 · Space / ↑ 점프<br>벽에서 미끄러지며 점프할 수 있어요.<br>P / Esc 일시 정지 · 가시와 적을 조심하세요!</p></div><div class="actions"><button class="btn primary" id="start">여행 시작</button><button class="btn" id="menu" hidden>여정 선택</button></div></section></div>
+    </section>
+  </main><script type="module" src="app.js"></script>
+</body></html>

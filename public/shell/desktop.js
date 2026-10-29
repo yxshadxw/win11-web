@@ -2,6 +2,7 @@ import { WindowManager } from './window-manager.js';
 import { DesktopIcons } from './icons.js';
 import { Panels } from './panels.js';
 import { boot, lock } from './boot.js';
+import { Widgets } from './widgets.js';
 import { $, appIcon, store } from './util.js';
 
 const THEME_KEY = 'win11web.theme';
@@ -14,6 +15,8 @@ const DEFAULT_PINNED = ['explorer', 'chrome', 'terminal', 'webkart', 'gostop'];
 const wm = new WindowManager($('#windows'), $('#snap-preview'));
 let apps = [];
 let pinned = store.getJSON(PINNED_KEY, DEFAULT_PINNED);
+let widgets = null;
+let showAllApps = false;
 
 const appById = (id) => apps.find((a) => a.id === id);
 
@@ -156,9 +159,25 @@ function startButton(app, className, size) {
 
 function renderStartApps(query = '') {
   const q = query.trim().toLowerCase();
-  const matches = apps.filter((a) => !q || a.name.toLowerCase().includes(q) || a.id.includes(q) || a.category.includes(q));
-  $('#start-recent-wrap').hidden = Boolean(q);
+  const searching = Boolean(q);
+  const pool = searching || showAllApps ? apps : apps.filter((a) => a.desktop);
+  const matches = pool.filter((a) => !q || a.name.toLowerCase().includes(q) || a.id.includes(q) || a.category.includes(q));
+  $('#start-recent-wrap').hidden = searching || showAllApps;
+  $('#start-apps-title').textContent = searching ? '검색 결과' : showAllApps ? '모든 앱' : '고정됨';
+  $('#all-apps').setAttribute('aria-pressed', String(showAllApps));
+  $('#all-apps').firstChild.textContent = showAllApps ? '뒤로 ' : '모든 앱 ';
   const list = $('#start-apps');
+  list.classList.toggle('all', showAllApps && !searching);
+  if (showAllApps && !searching) {
+    // Grouped by category, with a heading per group.
+    const groups = [...new Set(apps.map((a) => a.category))];
+    list.replaceChildren(...groups.flatMap((cat) => [
+      Object.assign(document.createElement('li'), { className: 'start-group', textContent: cat }),
+      ...apps.filter((a) => a.category === cat).sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+        .map((app) => startButton(app, 'start-recent-item', 28)),
+    ]));
+    return;
+  }
   if (!matches.length) {
     const li = document.createElement('li');
     li.className = 'start-empty';
@@ -180,6 +199,7 @@ function renderStartApps(query = '') {
 
 function openStart() {
   closeFlyouts();
+  showAllApps = false;
   startMenu.hidden = false;
   $('#start-btn').setAttribute('aria-expanded', 'true');
   startSearch.value = '';
@@ -196,12 +216,15 @@ function closeStart() {
 function closeFlyouts() {
   closeStart();
   panels.closeAll();
+  widgets?.close();
+  closeTaskView();
   $('#context-menu').hidden = true;
 }
 
 $('#start-btn').addEventListener('click', () => (startMenu.hidden ? openStart() : closeStart()));
 $('#search-btn').addEventListener('click', () => openStart());
 startSearch.addEventListener('input', () => renderStartApps(startSearch.value));
+$('#all-apps').addEventListener('click', () => { showAllApps = !showAllApps; renderStartApps(startSearch.value); });
 startSearch.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     const first = $('#start-apps [data-id]');
@@ -254,6 +277,13 @@ function showMenu(items, x, y, { above = false } = {}) {
   ctx.querySelector('button')?.focus();
 }
 
+$('#desktop').addEventListener('pointerdown', (e) => {
+  if (e.target === $('#icons') || e.target === $('#desktop')) {
+    icons.select([]);
+    icons.startMarquee(e, $('#marquee'));
+  }
+});
+
 $('#desktop').addEventListener('contextmenu', (e) => {
   if (e.target.closest('.window')) return;
   e.preventDefault();
@@ -289,7 +319,8 @@ document.addEventListener('pointerdown', (e) => {
   if (!e.target.closest('#context-menu')) ctx.hidden = true;
   if (!e.target.closest('#start-menu, #start-btn, #search-btn')) closeStart();
   if (!e.target.closest('#quick-settings, #notify-center, #tray-btn, #clock-btn')) panels.closeAll();
-  if (!e.target.closest('.desk-cell')) icons.select(null);
+  if (!e.target.closest('#widgets, #widget-btn')) widgets?.close();
+  if (!e.target.closest('#task-view, #taskview-btn')) closeTaskView();
 });
 window.addEventListener('blur', closeFlyouts);
 document.addEventListener('keydown', (e) => {
@@ -307,6 +338,102 @@ window.addEventListener('message', (e) => {
   if (e.data?.type === 'win11web-notify') panels.notify(e.data.title, e.data.body);
 });
 
+/* ---------- task view ---------- */
+const taskView = $('#task-view');
+
+function openTaskView() {
+  closeFlyouts();
+  const wins = [...wm.windows.values()];
+  const list = $('#tv-list');
+  if (!wins.length) {
+    list.replaceChildren(Object.assign(document.createElement('li'), { className: 'tv-empty', textContent: '열린 창이 없습니다.' }));
+  } else {
+    list.replaceChildren(...wins.map((w) => {
+      const li = document.createElement('li');
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'tv-card';
+      card.dataset.id = w.id;
+      if (w.id === wm.activeId && !w.minimized) card.classList.add('current');
+      const head = document.createElement('span');
+      head.className = 'tv-head';
+      head.append(appIcon(w.app, 16), Object.assign(document.createElement('span'), { className: 'tv-name', textContent: w.el.querySelector('.t-title').textContent }));
+      const body = document.createElement('span');
+      body.className = 'tv-body';
+      body.append(appIcon(w.app, 64));
+      if (w.minimized) body.append(Object.assign(document.createElement('span'), { className: 'tv-min', textContent: '최소화됨' }));
+      const close = Object.assign(document.createElement('span'), { className: 'tv-close', textContent: '×', title: '닫기' });
+      close.setAttribute('role', 'button');
+      close.setAttribute('aria-label', '창 닫기');
+      card.append(head, body, close);
+      li.append(card);
+      return li;
+    }));
+  }
+  taskView.hidden = false;
+  $('#taskview-btn').setAttribute('aria-expanded', 'true');
+  $('#tv-list button')?.focus();
+}
+
+function closeTaskView() {
+  taskView.hidden = true;
+  $('#taskview-btn').setAttribute('aria-expanded', 'false');
+}
+
+$('#taskview-btn').addEventListener('click', () => (taskView.hidden ? openTaskView() : closeTaskView()));
+taskView.addEventListener('click', (e) => {
+  const card = e.target.closest('.tv-card');
+  if (!card) { closeTaskView(); return; }
+  if (e.target.closest('.tv-close')) {
+    wm.close(card.dataset.id);
+    card.parentElement.remove();
+    if (!wm.windows.size) closeTaskView();
+    return;
+  }
+  closeTaskView();
+  wm.focus(card.dataset.id);
+});
+
+/* ---------- taskbar hover previews ---------- */
+const preview = $('#tb-preview');
+let previewTimer = null;
+
+$('#taskbar-apps').addEventListener('pointerover', (e) => {
+  const btn = e.target.closest('.tb-btn');
+  if (!btn || e.pointerType !== 'mouse') return;
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => {
+    const app = appById(btn.dataset.id);
+    const wins = wm.findByApp(btn.dataset.id);
+    preview.replaceChildren(Object.assign(document.createElement('div'), { className: 'pv-app', textContent: app.name }));
+    for (const w of wins) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'pv-win';
+      row.dataset.id = w.id;
+      row.append(appIcon(app, 16), Object.assign(document.createElement('span'), { textContent: w.el.querySelector('.t-title').textContent }));
+      preview.append(row);
+    }
+    preview.hidden = false;
+    const r = btn.getBoundingClientRect();
+    const pr = preview.getBoundingClientRect();
+    preview.style.left = `${Math.max(8, Math.min(r.left + r.width / 2 - pr.width / 2, innerWidth - pr.width - 8))}px`;
+  }, 350);
+});
+$('#taskbar-apps').addEventListener('pointerleave', () => {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => { if (!preview.matches(':hover')) preview.hidden = true; }, 200);
+});
+preview.addEventListener('pointerleave', () => { preview.hidden = true; });
+preview.addEventListener('click', (e) => {
+  const id = e.target.closest('.pv-win')?.dataset.id;
+  preview.hidden = true;
+  if (id) wm.focus(id);
+});
+
+// Minimizing animates the window into its taskbar button.
+wm.minimizeTarget = (appId) => document.querySelector(`#taskbar-apps .tb-btn[data-id="${appId}"]`)?.getBoundingClientRect();
+
 async function start() {
   applyWallpaper();
   tickClock();
@@ -314,7 +441,8 @@ async function start() {
   const params = new URLSearchParams(location.search);
   const res = await fetch('/apps/registry.json');
   apps = (await res.json()).apps;
-  icons.render(apps);
+  icons.render(apps.filter((a) => a.desktop));
+  widgets = new Widgets({ apps, openApp });
   renderTaskbar();
   await boot({ skip: params.has('open') });
   // Deep link: /?open=webkart or /?open=notepad,calculator

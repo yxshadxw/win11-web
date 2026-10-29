@@ -5,6 +5,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleProxy, PROXY_PATH, rateLimited } from './proxy.mjs';
 import { handleYouTube } from './youtube.mjs';
+import { handleWeather } from './weather.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('./public', import.meta.url)));
 const PORT = Number(process.env.PORT || 3100);
@@ -82,12 +83,12 @@ const server = createServer((req, res) => {
     return res.end(JSON.stringify({ gostopUrl: GOSTOP_URL }));
   }
   if (pathname === PROXY_PATH) return handleProxy(req, res, clientIp(req));
-  if (pathname === '/yt/search') {
+  if (pathname === '/yt/search' || pathname === '/api/weather') {
     if (rateLimited(clientIp(req))) {
       res.writeHead(429, { 'content-type': 'application/json; charset=utf-8' });
       return res.end(JSON.stringify({ error: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' }));
     }
-    return handleYouTube(req, res);
+    return pathname === '/yt/search' ? handleYouTube(req, res) : handleWeather(req, res);
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405);

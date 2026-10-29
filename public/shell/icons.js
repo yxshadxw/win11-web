@@ -20,7 +20,11 @@ export class DesktopIcons {
     });
     list.addEventListener('keydown', (e) => {
       const btn = e.target.closest('.desk-icon');
-      if (btn && e.key === 'Enter') { e.preventDefault(); this.onOpen(btn.dataset.id); }
+      if (btn && e.key === 'Enter') {
+        e.preventDefault();
+        const ids = this.selectedIds();
+        (ids.includes(btn.dataset.id) ? ids : [btn.dataset.id]).forEach((id) => this.onOpen(id));
+      }
     });
     list.addEventListener('pointerdown', (e) => this.startDrag(e));
   }
@@ -92,14 +96,52 @@ export class DesktopIcons {
     }
   }
 
-  select(id) {
-    for (const b of this.list.querySelectorAll('.desk-icon')) b.classList.toggle('selected', b.dataset.id === id);
+  select(ids) {
+    const set = new Set(Array.isArray(ids) ? ids : ids ? [ids] : []);
+    for (const b of this.list.querySelectorAll('.desk-icon')) b.classList.toggle('selected', set.has(b.dataset.id));
+  }
+
+  selectedIds() {
+    return [...this.list.querySelectorAll('.desk-icon.selected')].map((b) => b.dataset.id);
+  }
+
+  /** Dragging on empty desktop draws a selection rectangle, like Explorer. */
+  startMarquee(e, marquee) {
+    if (e.button !== 0 || e.pointerType === 'touch') return;
+    const ox = e.clientX;
+    const oy = e.clientY;
+    const box = this.list.getBoundingClientRect();
+    const move = (ev) => {
+      const x = Math.min(ox, ev.clientX);
+      const y = Math.min(oy, ev.clientY);
+      const w = Math.abs(ev.clientX - ox);
+      const h = Math.abs(ev.clientY - oy);
+      if (w + h < 6) return;
+      Object.assign(marquee.style, { left: `${x - box.left}px`, top: `${y - box.top}px`, width: `${w}px`, height: `${h}px` });
+      marquee.hidden = false;
+      const hits = [...this.list.querySelectorAll('.desk-icon')].filter((b) => {
+        const r = b.getBoundingClientRect();
+        return r.right > x && r.left < x + w && r.bottom > y && r.top < y + h;
+      });
+      this.select(hits.map((b) => b.dataset.id));
+    };
+    const up = () => {
+      marquee.hidden = true;
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   }
 
   startDrag(e) {
     const li = e.target.closest('.desk-cell');
-    this.select(li?.dataset.id);
-    if (!li || e.button !== 0) return;
+    if (!li) return;
+    // Ctrl-click toggles an icon in the selection; a plain click on an unselected icon selects only it.
+    const btn = li.querySelector('.desk-icon');
+    if (e.ctrlKey) { btn.classList.toggle('selected'); return; }
+    if (!btn.classList.contains('selected')) this.select(li.dataset.id);
+    if (e.button !== 0) return;
     if (e.pointerType === 'touch') {
       // No double-click on touch screens: a tap opens.
       const up = () => { this.onOpen(li.dataset.id); };

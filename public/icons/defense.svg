@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs><linearGradient id="defense-sky" x2="0" y2="1"><stop stop-color="#9de3f4"/><stop offset="1" stop-color="#517bd3"/></linearGradient><linearGradient id="defense-tower" x2="1" y2="1"><stop stop-color="#f6f8ff"/><stop offset="1" stop-color="#a9c1e8"/></linearGradient></defs>
+  <circle cx="24" cy="24" r="21" fill="url(#defense-sky)"/>
+  <path d="M5 34c8-5 13-4 19-1s12 3 19-1v7H5z" fill="#438d83"/>
+  <path d="M14 39V20h20v19z" fill="url(#defense-tower)"/>
+  <path d="M12 21 24 8l12 13z" fill="#6556ae"/><path d="M20 39v-9a4 4 0 0 1 8 0v9" fill="#5375a8"/>
+  <path d="M24 14v-8m0 0 7 2-7 3" fill="#ffd887" stroke="#ffd887" stroke-linejoin="round"/>
+  <path d="M17 24h3m8 0h3" stroke="#7fa1cb" stroke-width="2" stroke-linecap="round"/>
+</svg>

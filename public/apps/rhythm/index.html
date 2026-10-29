@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>비트 정원</title>
+</head><body>
+  <main class="app">
+    <header class="toolbar"><strong>♪ 비트 정원</strong><span class="spacer"></span><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">다시 시작</button></header>
+    <section class="stage" aria-label="리듬 게임 화면">
+      <canvas id="game" aria-label="네 줄의 리듬 노트"></canvas>
+      <div class="hud"><span id="score">0점</span><span id="combo">0 COMBO</span><span id="accuracy">정확도 100%</span></div>
+      <div class="lanes" aria-label="터치 조작"><button data-lane="0">D</button><button data-lane="1">F</button><button data-lane="2">J</button><button data-lane="3">K</button></div>
+      <div class="overlay" id="overlay"><section class="panel card"><div class="eyebrow">A LITTLE RHYTHM GARDEN</div><h1 id="heading">비트 정원</h1><p id="message">떨어지는 빛을 박자에 맞춰 눌러 보세요.</p><div id="selection"><label>곡 선택 <select class="input" id="song"></select></label><label>난이도 <select class="input" id="difficulty"><option value="easy">산책</option><option value="hard">질주</option></select></label><label>타이밍 보정 (ms) <input class="input" id="offset" type="number" min="-200" max="200" step="5" value="0"></label><p class="help">D F J K 또는 아래 버튼으로 연주<br>P / Esc 일시 정지 · 보정값이 양수면 늦게 입력합니다.</p><p id="best"></p></div><div class="actions"><button class="btn primary" id="start">연주 시작</button><button class="btn" id="menu" hidden>곡 선택</button></div></section></div>
+    </section>
+  </main><script type="module" src="app.js"></script>
+</body></html>

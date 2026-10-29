@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>체스</title>
+</head>
+<body>
+  <header><div><h1>체스</h1><p>생각을 한 수 앞서</p></div><button class="btn primary" id="restart">새 게임</button></header>
+  <main><section class="play"><div class="toolbar controls"><label>상대 <select class="input" id="mode"><option value="local">두 사람</option><option value="ai">컴퓨터</option></select></label><label>난이도 <select class="input" id="level"><option value="1">쉬움</option><option value="2" selected>보통</option><option value="3">어려움</option></select></label><button class="btn" id="undo">되돌리기</button><button class="btn" id="flip">판 뒤집기</button></div><div class="board-wrap"><div id="board" class="board" role="grid" aria-label="체스판"></div></div><div class="status" id="status" role="status"></div></section><aside class="card"><h2>기보</h2><p class="hint">말을 선택하거나 끌어서 이동하세요. 화살표 키와 Enter도 사용할 수 있습니다.</p><ol id="moves"></ol></aside></main>
+  <dialog id="promotion" aria-labelledby="promotion-title"><h2 id="promotion-title">승격할 말 선택</h2><div id="choices"></div></dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

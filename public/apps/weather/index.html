@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>날씨</title>
+</head>
+<body>
+  <header class="toolbar topbar">
+    <div class="brand"><img src="/icons/weather.svg" alt=""><strong>날씨</strong></div>
+    <button class="btn" id="picker-open"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg> 도시 찾기</button>
+    <button class="btn" id="locate"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg> 현재 위치</button>
+  </header>
+  <main id="main" class="weather" aria-live="polite">
+    <div class="skeleton" aria-label="날씨를 불러오는 중"><div></div><div></div><div></div></div>
+  </main>
+  <dialog id="picker" aria-labelledby="picker-title">
+    <div class="dialog-head"><div><h2 id="picker-title">도시 찾기</h2><p>원하는 도시의 날씨를 확인하세요.</p></div><button class="btn close" id="picker-close" aria-label="닫기">✕</button></div>
+    <label class="search-label" for="city-search">도시 검색</label>
+    <input class="input" id="city-search" type="search" placeholder="도시 이름 입력" autocomplete="off">
+    <div class="saved-heading">저장한 도시</div><div id="saved" class="saved-list"></div>
+    <div class="saved-heading">모든 도시</div><div id="cities" class="city-list"></div>
+  </dialog>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

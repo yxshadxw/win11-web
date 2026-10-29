@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>스도쿠</title>
+</head>
+<body>
+  <header class="toolbar"><strong>스도쿠</strong><span class="spacer"></span><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">새 게임</button></header>
+  <main>
+    <div class="status"><div><small>난이도</small><strong id="level">쉬움</strong></div><div><small>시간</small><strong id="timer">00:00</strong></div><div><small>실수</small><strong id="mistakes">0</strong></div><div><small>최고 기록</small><strong id="best">--:--</strong></div></div>
+    <div id="board" class="board" role="grid" aria-label="스도쿠 판"></div>
+    <div class="number-pad" id="numbers" aria-label="숫자 입력"></div>
+    <div class="actions"><button class="btn" id="notes">연필 메모 끔 (N)</button><button class="btn" id="erase">지우기</button><button class="btn" id="undo">실행 취소</button><button class="btn" id="redo">다시 실행</button><button class="btn" id="hint">힌트</button></div>
+  </main>
+  <div class="overlay" id="overlay"><section class="card panel"><div class="eyebrow">A LITTLE MOMENT OF FOCUS</div><h1 id="overlay-title">스도쿠</h1><p id="overlay-text">빈 칸에 1부터 9까지 넣어 각 행, 열, 3×3 칸에 숫자가 한 번씩만 나타나도록 완성하세요.</p><div id="setup"><label>난이도 <select class="input" id="difficulty"><option value="easy">쉬움</option><option value="medium">보통</option><option value="hard">어려움</option><option value="expert">전문가</option></select></label><label><input type="checkbox" id="count-mistakes" checked> 실수 횟수 표시</label><p class="help">방향키로 이동 · 숫자 입력 · Delete 지우기 · N 메모 · P / Esc 일시 정지</p></div><div class="panel-actions"><button class="btn primary" id="start">게임 시작</button><button class="btn" id="resume" hidden>계속하기</button></div></section></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

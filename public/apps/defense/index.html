@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <title>수호의 탑</title>
+</head>
+<body>
+  <main class="app">
+    <header class="toolbar"><div class="brand"><img src="/icons/defense.svg" alt=""><strong>수호의 탑</strong></div><div class="commands"><button class="btn" id="sound">소리 켜짐</button><button class="btn" id="speed">1배속</button><button class="btn" id="pause">일시 정지</button><button class="btn" id="restart">다시 시작</button></div></header>
+    <div class="layout">
+      <section class="battle"><div class="hud"><span>웨이브 <b id="wave">0 / 20</b></span><span>골드 <b id="gold">0</b></span><span>생명 <b id="lives">0</b></span></div><canvas id="game" tabindex="0" aria-label="방어 지도. 방향키로 칸을 이동하고 Enter로 선택하세요."></canvas><div class="hint" id="message" aria-live="polite"></div></section>
+      <aside class="sidebar"><div><span class="eyebrow">BUILD YOUR DEFENSE</span><h2>방어 준비</h2><p>타워를 고른 뒤 빈 칸을 선택하세요.</p></div><div class="tower-list" id="towers"></div><div class="selection card" id="selection">타워를 선택하면 강화와 목표 설정을 할 수 있습니다.</div><div class="preview card"><strong>다음 웨이브</strong><p id="preview"></p><button class="btn primary" id="next">웨이브 시작</button></div><div class="keyboard">방향키 · 칸 이동　 Enter · 선택<br>P / Esc · 일시 정지</div></aside>
+    </div>
+    <div class="overlay" id="overlay"><section class="panel card"><span class="eyebrow">A LITTLE WORLD TO PROTECT</span><h1 id="overlay-title">수호의 탑</h1><p id="overlay-text">구불구불한 길을 따라 몰려오는 적으로부터 수정 마을을 지켜 주세요.</p><div id="map-options"><label>지도 선택 <select class="input" id="map"><option value="0">이슬 숲</option><option value="1">노을 협곡</option><option value="2">달빛 정원</option></select></label><p>빈 칸에 타워를 세우고, 웨이브를 시작하세요. 적을 처치해 골드를 얻고 타워를 강화하세요. 일찍 시작하면 보너스 골드를 얻습니다.</p><p>마우스·터치 또는 방향키와 Enter로 조작합니다. P / Esc로 멈출 수 있습니다.</p><p id="stars"></p></div><div class="actions"><button class="btn primary" id="start">시작하기</button><button class="btn" id="resume" hidden>계속하기</button><button class="btn" id="title" hidden>지도 선택</button></div></section></div>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

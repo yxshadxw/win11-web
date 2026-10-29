@@ -1,0 +1,13 @@
+body { overflow: auto; }
+header { display:flex; align-items:center; justify-content:space-between; padding:16px 22px; background:var(--surface); border-bottom:1px solid var(--border); }
+h1,h2,p { margin:0; } h1 { font-size:22px; } header p,.hint { color:var(--text-2); margin-top:4px; }
+main { display:flex; gap:16px; max-width:1100px; margin:auto; padding:16px; align-items:start; }
+.play { min-width:0; flex:1; } .controls { border:1px solid var(--border); border-radius:10px; flex-wrap:wrap; gap:8px; } label { display:flex; align-items:center; gap:5px; }
+.board-wrap { padding:16px 0; display:flex; justify-content:center; } .board { display:grid; grid-template-columns:repeat(8,1fr); width:min(100%, 640px); aspect-ratio:1; border:7px solid #654a3b; border-radius:8px; overflow:hidden; box-shadow:var(--shadow); touch-action:none; }
+.square { position:relative; padding:0; border:0; display:grid; place-items:center; background:#e9dbc2; cursor:pointer; min-width:0; }
+.square.dark { background:#8aab9a; } .square.last { box-shadow:inset 0 0 0 999px #e8ce5166; } .square.selected { box-shadow:inset 0 0 0 4px #0078d4; } .square.check { background:#df6963; }
+.square:focus-visible { outline:3px solid #0078d4; outline-offset:-3px; z-index:2; } .square svg { width:82%; height:82%; filter:drop-shadow(0 2px 2px #0005); pointer-events:none; }
+.square.legal::after { content:''; position:absolute; width:23%; aspect-ratio:1; border-radius:50%; background:#163d3266; pointer-events:none; } .square.capture::after { width:88%; background:none; border:5px solid #163d3266; }
+.status { padding:4px 2px; font-weight:600; } aside { width:230px; max-height:75vh; overflow:auto; } aside h2 { font-size:17px; } #moves { columns:2; padding-left:28px; line-height:2; font-variant-numeric:tabular-nums; }
+dialog { border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); } dialog::backdrop { background:#0008; } #choices { display:flex; gap:8px; margin-top:16px; } #choices button { width:64px; height:64px; } #choices svg { width:100%; height:100%; }
+@media(max-width:700px) { main { flex-direction:column; padding:10px; } .play, aside { width:100%; } aside { max-height:180px; } header { padding:12px; } .controls { padding:6px; } }
