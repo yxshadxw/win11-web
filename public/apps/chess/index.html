@@ -10,7 +10,30 @@
 </head>
 <body>
   <header><div><h1>체스</h1><p>생각을 한 수 앞서</p></div><button class="btn primary" id="restart">새 게임</button></header>
-  <main><section class="play"><div class="toolbar controls"><label>상대 <select class="input" id="mode"><option value="local">두 사람</option><option value="ai">컴퓨터</option></select></label><label>난이도 <select class="input" id="level"><option value="1">쉬움</option><option value="2" selected>보통</option><option value="3">어려움</option></select></label><button class="btn" id="undo">되돌리기</button><button class="btn" id="flip">판 뒤집기</button></div><div class="board-wrap"><div id="board" class="board" role="grid" aria-label="체스판"></div></div><div class="status" id="status" role="status"></div></section><aside class="card"><h2>기보</h2><p class="hint">말을 선택하거나 끌어서 이동하세요. 화살표 키와 Enter도 사용할 수 있습니다.</p><ol id="moves"></ol></aside></main>
+  <main><section class="play"><div class="toolbar controls"><label>상대 <select class="input" id="mode"><option value="local">두 사람</option><option value="ai">컴퓨터</option><option value="online">온라인</option></select></label><label>난이도 <select class="input" id="level"><option value="1">쉬움</option><option value="2" selected>보통</option><option value="3">어려움</option></select></label><button class="btn" id="undo">되돌리기</button><button class="btn" id="flip">판 뒤집기</button></div><div class="board-wrap"><div id="board" class="board" role="grid" aria-label="체스판"></div></div><div class="status" id="status" role="status"></div></section><aside class="card">
+      <section id="online" class="online" hidden aria-label="온라인 대전">
+        <h2>온라인 대전</h2>
+        <div id="online-lobby">
+          <p class="hint">방을 만들어 친구에게 코드나 링크를 보내거나, 받은 코드로 참가하세요.</p>
+          <button id="create-room" class="btn primary" type="button">방 만들기</button>
+          <form id="join-form" class="join-form">
+            <input id="join-code" class="input" maxlength="6" placeholder="방 코드 6자리" aria-label="방 코드" autocomplete="off" spellcheck="false">
+            <button class="btn" type="submit">참가</button>
+          </form>
+        </div>
+        <div id="online-room" hidden>
+          <div class="room-code-row"><span>방 코드</span><strong id="room-code"></strong></div>
+          <p id="room-role" class="room-role"></p>
+          <div class="room-actions">
+            <button id="copy-link" class="btn" type="button">초대 링크 복사</button>
+            <button id="resign" class="btn" type="button">기권</button>
+            <button id="leave-room" class="btn" type="button">나가기</button>
+          </div>
+          <p id="rematch-note" class="hint"></p>
+        </div>
+        <p id="online-error" class="online-error" role="alert"></p>
+      </section>
+      <h2>기보</h2><p class="hint">말을 선택하거나 끌어서 이동하세요. 화살표 키와 Enter도 사용할 수 있습니다.</p><ol id="moves"></ol></aside></main>
   <dialog id="promotion" aria-labelledby="promotion-title"><h2 id="promotion-title">승격할 말 선택</h2><div id="choices"></div></dialog>
   <script type="module" src="app.js"></script>
 </body>

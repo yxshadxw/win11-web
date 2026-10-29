@@ -11,3 +11,17 @@ main { display:flex; gap:16px; max-width:1100px; margin:auto; padding:16px; alig
 .status { padding:4px 2px; font-weight:600; } aside { width:230px; max-height:75vh; overflow:auto; } aside h2 { font-size:17px; } #moves { columns:2; padding-left:28px; line-height:2; font-variant-numeric:tabular-nums; }
 dialog { border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); } dialog::backdrop { background:#0008; } #choices { display:flex; gap:8px; margin-top:16px; } #choices button { width:64px; height:64px; } #choices svg { width:100%; height:100%; }
 @media(max-width:700px) { main { flex-direction:column; padding:10px; } .play, aside { width:100%; } aside { max-height:180px; } header { padding:12px; } .controls { padding:6px; } }
+
+/* online play */
+.online { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.online[hidden], #online-lobby[hidden], #online-room[hidden] { display: none; }
+.online h2 { margin-top: 0; }
+.join-form { display: flex; gap: 6px; margin-top: 10px; }
+.join-form .input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 2px; font-family: var(--mono); }
+.room-code-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.room-code-row span { color: var(--text-2); font-size: 12px; }
+.room-code-row strong { font-family: var(--mono); font-size: 26px; letter-spacing: 4px; color: var(--accent); }
+.room-role { margin: 4px 0 10px; font-weight: 600; }
+.room-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.online-error { color: var(--danger); font-size: 12px; min-height: 1em; margin: 8px 0 0; }
+[hidden] { display: none !important; }

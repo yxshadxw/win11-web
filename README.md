@@ -34,6 +34,12 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 - `public/shell/` — 데스크톱, 창 관리자, 작업 표시줄, 시작 메뉴
 - `public/apps/registry.json` — 앱 목록. 새 앱은 여기에 한 줄 추가하고 `public/apps/<id>/index.html`을 만들면 됩니다. 규칙은 `APP_CONTRACT.md` 참고.
 
+## 온라인 체스
+
+체스 앱에서 상대를 '온라인'으로 고르고 방을 만든 뒤 6자리 코드나 초대 링크(`/apps/chess/?room=코드`)를 친구에게 보내면 됩니다. 서버(`chess-online.mjs`)가 모든 수를 `rules.js`로 검사하고 Server-Sent Events로 두 사람에게 실시간 전달합니다. 세 번째로 들어온 사람은 관전합니다. 대국이 끝나면 둘 다 재대결을 누를 때 색을 바꿔 새 게임이 시작됩니다. 방은 서버 메모리에만 있어서 서버가 재시작되면 사라집니다.
+
+`node tests/chess-online.e2e.cjs [주소]`는 브라우저 두 개로 실제 대국을 진행해 확인합니다.
+
 ## 크롬 앱과 프록시
 
 외부 사이트는 서버가 대신 받아 링크를 `/proxy?url=...`로 바꿔서 보여줍니다. 공개 서버라서 다음 제한이 있습니다.
