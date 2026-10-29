@@ -6,6 +6,7 @@ const SANDBOX = 'allow-scripts allow-forms allow-popups allow-popups-to-escape-s
 const SHORTCUTS = [
   { name: '위키백과', icon: '📚', url: 'https://ko.wikipedia.org/' },
   { name: 'DuckDuckGo', icon: '🦆', url: 'https://html.duckduckgo.com/html/' },
+  { name: 'YouTube', icon: '▶️', url: 'https://www.youtube.com/' },
   { name: 'Hacker News', icon: '🗞️', url: 'https://news.ycombinator.com/' },
   { name: 'MDN', icon: '📘', url: 'https://developer.mozilla.org/ko/' },
   { name: 'example.com', icon: '🌐', url: 'https://example.com/' },
@@ -22,6 +23,19 @@ const address = $('#address');
 const tabs = [];
 let active = null;
 let seq = 0;
+
+/** YouTube can't run through the proxy, so its URLs open in the app's own YouTube view instead. */
+function youtubeView(url) {
+  let u;
+  try { u = new URL(url); } catch { return null; }
+  const host = u.hostname.replace(/^(www|m|music)\./, '');
+  if (host === 'youtu.be') return `/apps/chrome/youtube.html?v=${encodeURIComponent(u.pathname.slice(1))}`;
+  if (host !== 'youtube.com') return null;
+  const v = u.searchParams.get('v') || u.pathname.match(/^\/(?:shorts|embed|live)\/([\w-]+)/)?.[1];
+  if (v) return `/apps/chrome/youtube.html?v=${encodeURIComponent(v)}`;
+  const q = u.searchParams.get('search_query');
+  return q ? `/apps/chrome/youtube.html?q=${encodeURIComponent(q)}` : '/apps/chrome/youtube.html';
+}
 
 function isInternal(url) {
   return url.startsWith('/') || url.startsWith(location.origin + '/');
@@ -115,7 +129,8 @@ function buildNewTab(tab) {
 /** Shows the tab's current history entry, swapping the view element when its kind changes. */
 function show(tab) {
   const url = currentUrl(tab);
-  const kind = url === NEWTAB ? 'newtab' : isInternal(url) ? 'internal' : 'external';
+  const yt = url === NEWTAB ? null : youtubeView(url);
+  const kind = url === NEWTAB ? 'newtab' : yt ? 'youtube' : isInternal(url) ? 'internal' : 'external';
   let view = tab.view;
   if (!view || view.dataset.kind !== kind) {
     if (kind === 'newtab') {
@@ -139,7 +154,7 @@ function show(tab) {
   } else {
     tab.loading = true;
     tab.title = url.replace(/^https?:\/\//, '');
-    view.src = kind === 'external' ? `/proxy?url=${encodeURIComponent(url)}` : url;
+    view.src = kind === 'external' ? `/proxy?url=${encodeURIComponent(url)}` : yt || url;
   }
   render();
 }

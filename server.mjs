@@ -3,7 +3,8 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { handleProxy, PROXY_PATH } from './proxy.mjs';
+import { handleProxy, PROXY_PATH, rateLimited } from './proxy.mjs';
+import { handleYouTube } from './youtube.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('./public', import.meta.url)));
 const PORT = Number(process.env.PORT || 3100);
@@ -80,6 +81,13 @@ const server = createServer((req, res) => {
     return res.end(JSON.stringify({ gostopUrl: GOSTOP_URL }));
   }
   if (pathname === PROXY_PATH) return handleProxy(req, res, clientIp(req));
+  if (pathname === '/yt/search') {
+    if (rateLimited(clientIp(req))) {
+      res.writeHead(429, { 'content-type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ error: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' }));
+    }
+    return handleYouTube(req, res);
+  }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405);
     return res.end();

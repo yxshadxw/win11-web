@@ -29,7 +29,8 @@ node tests/smoke.mjs   # 브라우저 스모크 테스트 + 스크린샷 (서버
 ## 구조
 
 - `server.mjs` — 정적 파일, `/proxy`, `/config.json`, `/healthz`
-- `proxy.mjs` — 크롬 앱용 프록시
+- `proxy.mjs` — 크롬 앱용 프록시 (연결 재사용, 정적 파일 10분 캐시)
+- `youtube.mjs` — 크롬 앱의 YouTube 보기용 검색 (`/yt/search?q=`). YouTube는 프록시로 동작하지 않아 검색 결과를 서버에서 읽고, 재생은 YouTube 임베드 플레이어로 합니다
 - `public/shell/` — 데스크톱, 창 관리자, 작업 표시줄, 시작 메뉴
 - `public/apps/registry.json` — 앱 목록. 새 앱은 여기에 한 줄 추가하고 `public/apps/<id>/index.html`을 만들면 됩니다. 규칙은 `APP_CONTRACT.md` 참고.
 

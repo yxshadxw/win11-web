@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/shared/app.css">
+  <script type="module" src="/shared/theme.js"></script>
+  <title>YouTube</title>
+  <style>
+    body { overflow-y: auto; background: var(--surface); }
+    .yt-head {
+      position: sticky; top: 0; z-index: 2;
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .yt-brand { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 17px; letter-spacing: -.3px; cursor: pointer; border: 0; background: none; padding: 0; }
+    .yt-brand svg { width: 28px; height: 20px; }
+    .yt-search { flex: 1; max-width: 600px; display: flex; margin: 0 auto; }
+    .yt-search input {
+      flex: 1; min-width: 0; height: 38px; padding: 0 16px;
+      border: 1px solid var(--border); border-right: 0; border-radius: 19px 0 0 19px; background: var(--surface-2); outline: none;
+    }
+    .yt-search input:focus { border-color: var(--accent); }
+    .yt-search button { width: 60px; border: 1px solid var(--border); border-radius: 0 19px 19px 0; background: var(--bg); cursor: pointer; }
+    .chips { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; scrollbar-width: none; }
+    .chip { flex: 0 0 auto; padding: 6px 12px; border: 0; border-radius: 8px; background: var(--bg); cursor: pointer; font-size: 13px; }
+    .chip[aria-pressed="true"] { background: var(--text); color: var(--surface); }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px 16px;
+      padding: 8px 20px 32px;
+    }
+    .card { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; color: inherit; }
+    .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: var(--bg); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .len {
+      position: absolute; right: 6px; bottom: 6px; padding: 1px 5px; border-radius: 4px;
+      background: rgba(0,0,0,.8); color: #fff; font-size: 12px; font-weight: 500;
+    }
+    .len.live { background: #cc0000; }
+    .card h3 { margin: 10px 0 4px; font-size: 14px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .meta { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+    .card:hover h3 { color: var(--accent); }
+    .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 12px; }
+    .watch { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; padding: 20px; }
+    .player { aspect-ratio: 16 / 9; width: 100%; border: 0; border-radius: 12px; background: #000; }
+    .watch h1 { font-size: 19px; margin: 12px 0 6px; line-height: 1.35; }
+    .watch-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+    .side { display: flex; flex-direction: column; gap: 10px; }
+    .side .card { display: grid; grid-template-columns: 168px 1fr; gap: 8px; }
+    .side .card h3 { margin: 0 0 4px; font-size: 13px; }
+    .side .thumb { border-radius: 8px; }
+    .status { padding: 48px 20px; text-align: center; color: var(--text-2); }
+    .skeleton .thumb { animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .5; } }
+    @media (max-width: 900px) { .watch { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .yt-brand span { display: none; } .grid { padding: 8px 12px 24px; } }
+  </style>
+</head>
+<body>
+  <header class="yt-head">
+    <button class="yt-brand" id="home" type="button" aria-label="YouTube 홈">
+      <svg viewBox="0 0 28 20" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#ff0033"/><path d="M11 6v8l7-4z" fill="#fff"/></svg>
+      <span>YouTube</span>
+    </button>
+    <form class="yt-search" id="search" role="search">
+      <input id="q" name="q" type="search" placeholder="검색" aria-label="YouTube 검색" autocomplete="off">
+      <button type="submit" aria-label="검색">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+  </header>
+  <main id="main"></main>
+
+  <script type="module">
+    const HOME_TOPICS = ['인기 급상승', '음악', '게임', '뉴스', 'lofi', '먹방', '축구 하이라이트', '코딩'];
+    const main = document.querySelector('#main');
+    const input = document.querySelector('#q');
+    let results = [];
+
+    // Tell the Chrome app which real YouTube URL this view represents (for its address bar and history).
+    function report(url, title) {
+      document.title = title;
+      if (window.parent !== window) window.parent.postMessage({ type: 'win11web-proxy-nav', url, title }, location.origin);
+    }
+
+    function el(tag, props = {}, ...children) {
+      const node = Object.assign(document.createElement(tag), props);
+      node.append(...children.filter(Boolean));
+      return node;
+    }
+
+    function card(v) {
+      const len = el('span', { className: `len${v.live ? ' live' : ''}`, textContent: v.live ? '실시간' : v.length });
+      const img = el('img', { src: `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`, alt: '', loading: 'lazy' });
+      const meta = el('div', { className: 'meta' },
+        el('div', { textContent: v.channel }),
+        el('div', { textContent: [v.views, v.published].filter(Boolean).join(' · ') }));
+      const btn = el('button', { className: 'card', type: 'button' },
+        el('div', { className: 'thumb' }, img, (v.length || v.live) && len),
+        el('div', {}, el('h3', { textContent: v.title }), meta));
+      btn.addEventListener('click', () => go({ v: v.id }));
+      return btn;
+    }
+
+    function skeleton() {
+      return el('div', { className: 'grid skeleton' }, ...Array.from({ length: 8 }, () =>
+        el('div', { className: 'card' }, el('div', { className: 'thumb' }))));
+    }
+
+    async function search(q) {
+      const res = await fetch(`/yt/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '검색하지 못했습니다.');
+      return data.videos;
+    }
+
+    async function showList(q, { home = false } = {}) {
+      input.value = home ? '' : q;
+      const chips = el('div', { className: 'chips' }, ...HOME_TOPICS.map((t) => {
+        const chip = el('button', { className: 'chip', type: 'button', textContent: t });
+        chip.setAttribute('aria-pressed', String(t === q));
+        chip.addEventListener('click', () => go({ q: t, home: '1' }));
+        return chip;
+      }));
+      main.replaceChildren(home ? chips : '', skeleton());
+      report(home ? 'https://www.youtube.com/' : `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+        home ? 'YouTube' : `${q} - YouTube`);
+      try {
+        results = await search(q);
+        const grid = results.length
+          ? el('div', { className: 'grid' }, ...results.map(card))
+          : el('p', { className: 'status', textContent: `"${q}" 검색 결과가 없습니다.` });
+        main.replaceChildren(home ? chips : '', grid);
+      } catch (err) {
+        main.replaceChildren(el('p', { className: 'status', textContent: err.message }));
+      }
+    }
+
+    function showVideo(id, lookedUp = false) {
+      const info = results.find((r) => r.id === id);
+      if (!info && !lookedUp) {
+        // Opened from a link: searching the ID finds the video's title and related videos.
+        search(id).then((found) => { results = found; showVideo(id, true); }).catch(() => showVideo(id, true));
+        return;
+      }
+      // youtube-nocookie embeds don't set tracking cookies until playback; some videos disallow embedding.
+      const player = el('iframe', {
+        className: 'player',
+        src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0`,
+        title: info?.title || 'YouTube 동영상',
+        allow: 'autoplay; encrypted-media; fullscreen; picture-in-picture',
+        allowFullscreen: true,
+      });
+      const external = el('a', {
+        className: 'btn', href: `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,
+        target: '_blank', rel: 'noopener', textContent: 'YouTube에서 열기',
+      });
+      const left = el('div', {}, player,
+        el('h1', { textContent: info?.title || '' }),
+        el('div', { className: 'watch-actions' },
+          el('div', { className: 'meta', textContent: [info?.channel, info?.views].filter(Boolean).join(' · ') }), external),
+        el('p', { className: 'meta', textContent: '재생이 안 되면 업로더가 외부 재생을 막아둔 영상입니다. "YouTube에서 열기"를 누르세요.' }));
+      const side = el('aside', { className: 'side' }, ...results.filter((r) => r.id !== id).slice(0, 12).map(card));
+      main.replaceChildren(el('div', { className: 'watch' }, left, side));
+      main.scrollTop = 0;
+      window.scrollTo(0, 0);
+      report(`https://www.youtube.com/watch?v=${id}`, `${info?.title || '동영상'} - YouTube`);
+    }
+
+    function render() {
+      const p = new URLSearchParams(location.search);
+      if (p.get('v')) showVideo(p.get('v'));
+      else if (p.get('q')) showList(p.get('q'), { home: p.get('home') === '1' });
+      else showList(HOME_TOPICS[0], { home: true });
+    }
+
+    function go(params) {
+      history.pushState(null, '', `?${new URLSearchParams(params)}`);
+      render();
+    }
+
+    document.querySelector('#search').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value.trim()) go({ q: input.value.trim() });
+    });
+    document.querySelector('#home').addEventListener('click', () => go({}));
+    window.addEventListener('popstate', render);
+    render();
+  </script>
+</body>
+</html>

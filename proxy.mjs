@@ -200,10 +200,19 @@ export function rateLimited(ip, now = Date.now()) {
   return entry.count > RATE_MAX;
 }
 
+// Keep-alive reuses connections (and TLS sessions) across a page's many asset requests.
+// Reused sockets were opened through safeLookup, so they already passed the address check.
+const agents = {
+  'http:': new http.Agent({ keepAlive: true, maxSockets: 64 }),
+  'https:': new https.Agent({ keepAlive: true, maxSockets: 64 }),
+};
+
 function request(url, method, headers) {
   return new Promise((resolve, reject) => {
     const lib = url.protocol === 'https:' ? https : http;
-    const req = lib.request(url, { method, headers, lookup: safeLookup, timeout: TIMEOUT_MS }, resolve);
+    const req = lib.request(url, {
+      method, headers, lookup: safeLookup, timeout: TIMEOUT_MS, agent: agents[url.protocol],
+    }, resolve);
     req.on('timeout', () => req.destroy(new ProxyError(504, '응답 시간이 초과되었습니다.')));
     req.on('error', reject);
     req.end();
@@ -242,6 +251,52 @@ export function errorPage(status, message) {
 <div><h1>이 페이지를 열 수 없습니다</h1><p>${safe}</p><p style="opacity:.7">코드 ${status}</p></div>`;
 }
 
+/** GETs a URL with the same safety checks and redirect handling as the proxy; returns decoded text. */
+export async function fetchText(target) {
+  let url = normalizeTarget(target);
+  for (let i = 0; ; i++) {
+    const upstream = await request(url, 'GET', { 'user-agent': UA, 'accept-language': 'ko-KR,ko;q=0.9', 'accept-encoding': 'gzip, deflate, br' });
+    const loc = upstream.headers.location;
+    if (upstream.statusCode >= 300 && upstream.statusCode < 400 && loc) {
+      upstream.resume();
+      if (i >= MAX_REDIRECTS) throw new ProxyError(508, '리다이렉트가 너무 많습니다.');
+      url = normalizeTarget(new URL(loc, url).href);
+      continue;
+    }
+    if (upstream.statusCode >= 400) { upstream.resume(); throw new ProxyError(502, `원본 사이트가 ${upstream.statusCode} 오류를 반환했습니다.`); }
+    const body = await readLimited(decompress(upstream));
+    return charsetOf(String(upstream.headers['content-type'] || '')).decode(body);
+  }
+}
+
+// Small in-memory cache for static assets (images, scripts, fonts) shared by all visitors.
+const ASSET_TTL_MS = 10 * 60_000;
+const ASSET_MAX_ITEM = 1024 * 1024;
+const ASSET_MAX_TOTAL = 64 * 1024 * 1024;
+const assetCache = new Map();
+let assetBytes = 0;
+
+function cacheGet(key) {
+  const hit = assetCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.time > ASSET_TTL_MS) { assetCache.delete(key); assetBytes -= hit.body.length; return null; }
+  assetCache.delete(key); // re-insert to mark as recently used
+  assetCache.set(key, hit);
+  return hit;
+}
+
+function cachePut(key, status, headers, body) {
+  if (body.length > ASSET_MAX_ITEM || status !== 200) return;
+  if (/no-store|private/i.test(headers['cache-control'] || '')) return;
+  assetCache.set(key, { time: Date.now(), status, headers, body });
+  assetBytes += body.length;
+  for (const [k, v] of assetCache) {
+    if (assetBytes <= ASSET_MAX_TOTAL) break;
+    assetCache.delete(k);
+    assetBytes -= v.body.length;
+  }
+}
+
 export async function handleProxy(req, res, clientIp) {
   const sendError = (status, message) => {
     res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': SANDBOX_CSP, 'cache-control': 'no-store' });
@@ -253,6 +308,12 @@ export async function handleProxy(req, res, clientIp) {
   try {
     const params = new URL(req.url, 'http://local').searchParams;
     let url = normalizeTarget(params.get('url'));
+    const cached = req.method === 'GET' ? cacheGet(url.href) : null;
+    if (cached) {
+      res.writeHead(cached.status, { ...cached.headers, 'x-proxy-cache': 'hit' });
+      return res.end(cached.body);
+    }
+    const cacheKey = url.href;
     let upstream;
     for (let i = 0; ; i++) {
       upstream = await request(url, req.method, {
@@ -287,6 +348,7 @@ export async function handleProxy(req, res, clientIp) {
       const rewritten = /css/i.test(type) && !/html/i.test(type) ? rewriteCss(text, url.href) : rewriteHtml(text, url.href);
       headers['content-type'] = type.replace(/charset=[\w-]+/i, 'charset=utf-8') || 'text/html; charset=utf-8';
       res.writeHead(upstream.statusCode, headers);
+      if (/css/i.test(type) && !/html/i.test(type)) cachePut(cacheKey, upstream.statusCode, headers, Buffer.from(rewritten));
       return res.end(req.method === 'HEAD' ? undefined : rewritten);
     }
 
@@ -294,6 +356,12 @@ export async function handleProxy(req, res, clientIp) {
     if (len > MAX_BYTES) { upstream.resume(); throw new ProxyError(413, '파일이 너무 큽니다.'); }
     if (upstream.headers['content-encoding']) headers['content-encoding'] = upstream.headers['content-encoding'];
     if (len) headers['content-length'] = String(len);
+    if (req.method === 'GET' && len && len <= ASSET_MAX_ITEM && upstream.statusCode === 200) {
+      const body = await readLimited(upstream); // still compressed: stored and sent as-is
+      cachePut(cacheKey, 200, headers, body);
+      res.writeHead(200, headers);
+      return res.end(body);
+    }
     res.writeHead(upstream.statusCode, headers);
     let sent = 0;
     upstream.on('data', (chunk) => {
