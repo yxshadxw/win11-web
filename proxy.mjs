@@ -168,7 +168,15 @@ addEventListener('DOMContentLoaded',function(){try{parent.postMessage({type:'win
 document.addEventListener('submit',function(e){var f=e.target;if((f.method||'get').toLowerCase()!=='get')return;e.preventDefault();
 var a=new URL(f.getAttribute('data-orig-action')||B,B);new FormData(f).forEach(function(v,k){if(typeof v==='string')a.searchParams.append(k,v);});
 var t=px(a.href);if(t)location.href=t;},true);
-var o=window.open;window.open=function(u,n,f){var t=u?px(u):null;return o.call(window,t||u,n,f);};})();</script>`;
+var o=window.open;window.open=function(u,n,f){var t=u?px(u):null;return o.call(window,t||u,n,f);};
+// Scripts, styles and data that a page builds in JavaScript (GitHub's chunks, for one) are
+// addressed by URLs that never went through rewriteHtml. Route them through the proxy too.
+function pxv(v){if(typeof v!=='string'||!v||v.indexOf(P)===0)return v;var t=px(v);return t||v;}
+var f=window.fetch;if(f)window.fetch=function(i,n){if(typeof i==='string'||(typeof URL!=='undefined'&&i instanceof URL))i=pxv(String(i));return f.call(this,i,n);};
+var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){var a=[].slice.call(arguments);a[1]=pxv(String(a[1]));return xo.apply(this,a);};
+[[HTMLScriptElement,'src'],[HTMLLinkElement,'href'],[HTMLImageElement,'src'],[HTMLIFrameElement,'src'],[HTMLSourceElement,'src'],[HTMLMediaElement,'src']].forEach(function(c){var d=Object.getOwnPropertyDescriptor(c[0].prototype,c[1]);if(!d||!d.set)return;Object.defineProperty(c[0].prototype,c[1],{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){d.set.call(this,pxv(String(v)));}});});
+var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(/^(src|href)$/i.test(String(n)))v=pxv(String(v));return sa.call(this,n,v);};
+})();</script>`;
 }
 
 export function rewriteHtml(html, pageUrl) {
