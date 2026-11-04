@@ -13,7 +13,11 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const TIMEOUT_MS = 15_000;
 const MAX_REDIRECTS = 5;
 const RATE_WINDOW_MS = 60_000;
+// Page loads are limited tightly; the stylesheets, scripts, images and fonts a page pulls in
+// (often 100+ per page) get a separate, much higher budget. Sharing one budget made a few page
+// loads turn stylesheets into 429 HTML pages, which browsers then refuse to apply.
 const RATE_MAX = 240;
+const RATE_MAX_ASSETS = 3000;
 
 const SANDBOX_CSP = 'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36';
@@ -197,17 +201,17 @@ export function rewriteHtml(html, pageUrl) {
 }
 
 const hits = new Map();
-export function rateLimited(ip, now = Date.now()) {
+export function rateLimited(ip, now = Date.now(), max = RATE_MAX) {
   const entry = hits.get(ip);
   if (!entry || now - entry.start > RATE_WINDOW_MS) {
-    hits.set(ip, { start: now, count: 1 });
+    hits.set(ip, { start: now, count: 1, max });
     if (hits.size > 10_000) {
       for (const [key, e] of hits) if (now - e.start > RATE_WINDOW_MS) hits.delete(key);
     }
     return false;
   }
   entry.count += 1;
-  return entry.count > RATE_MAX;
+  return entry.count > (entry.max ?? RATE_MAX);
 }
 
 // Keep-alive reuses connections (and TLS sessions) across a page's many asset requests.
@@ -309,11 +313,16 @@ function cachePut(key, status, headers, body) {
 
 export async function handleProxy(req, res, clientIp) {
   const sendError = (status, message) => {
-    res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': SANDBOX_CSP, 'cache-control': 'no-store' });
+    res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': SANDBOX_CSP, 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
     res.end(errorPage(status, message));
   };
   if (req.method !== 'GET' && req.method !== 'HEAD') return sendError(405, '이 프록시는 페이지 열기(GET)만 지원합니다.');
-  if (rateLimited(clientIp)) return sendError(429, '요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
+  // A page load is a document request; everything else is a sub-resource of some page.
+  const dest = String(req.headers['sec-fetch-dest'] || 'document');
+  const isDocument = dest === 'document' || dest === 'iframe' || dest === 'frame';
+  if (rateLimited(isDocument ? clientIp : `${clientIp}|assets`, Date.now(), isDocument ? RATE_MAX : RATE_MAX_ASSETS)) {
+    return sendError(429, '요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
+  }
 
   try {
     const params = new URL(req.url, 'http://local').searchParams;
@@ -347,6 +356,7 @@ export async function handleProxy(req, res, clientIp) {
       'content-type': type || 'application/octet-stream',
       'content-security-policy': SANDBOX_CSP,
       'x-content-type-options': 'nosniff',
+      'access-control-allow-origin': '*',
       'referrer-policy': 'no-referrer',
       'cache-control': upstream.headers['cache-control'] || 'no-cache',
       'x-proxied-url': encodeURI(url.href),
