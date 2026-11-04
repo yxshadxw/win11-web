@@ -77,3 +77,13 @@ test('stylesheet requests get a CSS type even when the site labels it otherwise'
   assert.equal(stylesheetType('text/plain', 'image'), 'text/plain', 'other requests are untouched');
   assert.equal(stylesheetType('text/plain', undefined), 'text/plain');
 });
+
+test('page loads and sub-resources have separate rate budgets', async () => {
+  const { rateLimited } = await import('../proxy.mjs');
+  const now = Date.now();
+  // 240 document requests are fine, the 241st is limited.
+  for (let i = 0; i < 240; i++) assert.equal(rateLimited(`doc-${now}`, now, 240), false);
+  assert.equal(rateLimited(`doc-${now}`, now, 240), true);
+  // A page's ~250 sub-resources under the asset budget do not hit the document limit.
+  for (let i = 0; i < 250; i++) assert.equal(rateLimited(`doc-${now}|assets`, now, 3000), false);
+});
