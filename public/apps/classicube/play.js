@@ -50,9 +50,17 @@ addEventListener('error', (e) => {
 
 document.getElementById('full').onclick = () => document.documentElement.requestFullscreen?.().catch(() => {});
 
-const config = await fetch('/config.json').then((r) => r.json()).catch(() => ({}));
-const script = document.createElement('script');
-script.src = config.classicubeClient || DEFAULT_CLIENT;
-script.async = true;
-script.onerror = () => fail('ClassiCube 게임 파일을 받지 못했습니다. 인터넷 연결이나 차단 프로그램을 확인하세요.');
-document.body.append(script);
+// Our server's cached copy first (same origin, survives blockers), then ClassiCube's own CDN.
+const sources = ['/static/ClassiCube.js', DEFAULT_CLIENT];
+function load(i) {
+  if (i >= sources.length) {
+    fail('ClassiCube 게임 파일을 받지 못했습니다. 잠시 후 새로 고침하거나, 광고 차단 프로그램을 끄고 다시 시도하세요.');
+    return;
+  }
+  const script = document.createElement('script');
+  script.src = sources[i];
+  script.async = true;
+  script.onerror = () => { script.remove(); load(i + 1); };
+  document.body.append(script);
+}
+load(0);

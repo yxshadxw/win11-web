@@ -67,3 +67,13 @@ test('rewriteCss rewrites url() and @import', () => {
   assert.ok(out.includes('@import "/proxy?url=' + encodeURIComponent('https://x.com/c/a.css') + '"'));
   assert.ok(out.includes("url('/proxy?url=" + encodeURIComponent('https://x.com/b.png') + "')"));
 });
+
+test('stylesheet requests get a CSS type even when the site labels it otherwise', async () => {
+  const { stylesheetType } = await import('../proxy.mjs');
+  assert.equal(stylesheetType('text/plain', 'style'), 'text/css; charset=utf-8');
+  assert.equal(stylesheetType('application/octet-stream', 'style'), 'text/css; charset=utf-8');
+  assert.equal(stylesheetType('text/css; charset=utf-8', 'style'), 'text/css; charset=utf-8');
+  assert.equal(stylesheetType('text/html', 'style'), 'text/html', 'an HTML error page is not restyled');
+  assert.equal(stylesheetType('text/plain', 'image'), 'text/plain', 'other requests are untouched');
+  assert.equal(stylesheetType('text/plain', undefined), 'text/plain');
+});

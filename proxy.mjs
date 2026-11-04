@@ -139,6 +139,16 @@ function encodeAttr(v) {
   return v.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+/**
+ * Browsers refuse to apply a stylesheet whose MIME type is not CSS (the proxy also sends
+ * nosniff). Many sites serve CSS as text/plain or application/octet-stream, so when the browser
+ * says the request is for a stylesheet, label the response as CSS. HTML error pages stay HTML.
+ */
+export function stylesheetType(upstreamType, fetchDest) {
+  if (fetchDest !== 'style' || /text\/html|application\/xhtml/i.test(upstreamType) || /text\/css/i.test(upstreamType)) return upstreamType;
+  return 'text/css; charset=utf-8';
+}
+
 export function rewriteCss(css, base) {
   return css
     .replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (m, q, u) => `url(${q}${proxify(u, base)}${q})`)
@@ -332,7 +342,7 @@ export async function handleProxy(req, res, clientIp) {
       break;
     }
 
-    const type = String(upstream.headers['content-type'] || '');
+    const type = stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']);
     const headers = {
       'content-type': type || 'application/octet-stream',
       'content-security-policy': SANDBOX_CSP,
