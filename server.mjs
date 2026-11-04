@@ -25,6 +25,7 @@ const classic = new ClassicServer();
 await classic.load();
 // The ClassiCube web client fetches its default textures from /static/default.zip.
 const TEXTURES_URL = process.env.CLASSIC_TEXTURES_URL || 'https://classicube.net/static/default.zip';
+const CLASSICUBE_BASE = (process.env.CLASSICUBE_CLIENT_BASE || 'https://cs.classicube.net/client/latest/').replace(/\/?$/, '/');
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -94,12 +95,21 @@ const server = createServer((req, res) => {
   }
   if (pathname === '/config.json') {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-cache' });
-    return res.end(JSON.stringify({ gostopUrl: GOSTOP_URL, classicubeClient: process.env.CLASSICUBE_CLIENT_URL || undefined }));
+    return res.end(JSON.stringify({ gostopUrl: GOSTOP_URL }));
   }
   if (pathname === '/api/gostop/status') return handleGostop(req, res);
   if (pathname === '/api/classic/status') {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
     return res.end(JSON.stringify(classic.status()));
+  }
+  // ClassiCube's hosting guide asks sites to serve the game files themselves; the Emscripten
+  // build looks for ClassiCube.wasm next to ClassiCube.js.
+  const clientFile = /^\/static\/(ClassiCube\.(?:js|wasm))$/.exec(pathname)?.[1];
+  if (clientFile) {
+    return serveCached(req, res, CLASSICUBE_BASE + clientFile, `classicube-${clientFile}`, {
+      type: clientFile.endsWith('.js') ? 'text/javascript; charset=utf-8' : 'application/wasm',
+      max: 32 * 1024 * 1024,
+    });
   }
   if (pathname.endsWith('/static/default.zip')) {
     return serveCached(req, res, TEXTURES_URL, 'classicube-default.zip', { type: 'application/zip', max: 8 * 1024 * 1024 });
