@@ -87,3 +87,31 @@ test('page loads and sub-resources have separate rate budgets', async () => {
   // A page's ~250 sub-resources under the asset budget do not hit the document limit.
   for (let i = 0; i < 250; i++) assert.equal(rateLimited(`doc-${now}|assets`, now, 3000), false);
 });
+
+test('cookies are scoped per host, path and session, and never leak across sessions', async () => {
+  const { storeCookies, cookieHeader, newSessionId, validSession, parseSetCookie } = await import('../proxy.mjs');
+  const site = new URL('https://login.example.com/session');
+  const a = newSessionId();
+  const b = newSessionId();
+  assert.equal(validSession(a), a);
+  assert.equal(validSession('../../x'), null);
+  storeCookies(a, site, ['user_session=abc; Path=/; Secure; HttpOnly', 'theme=dark; Domain=example.com; Path=/']);
+  assert.equal(cookieHeader(a, new URL('https://login.example.com/other')), 'user_session=abc; theme=dark');
+  assert.equal(cookieHeader(a, new URL('https://other.org/')), '', 'no cookies for other sites');
+  assert.equal(cookieHeader(a, new URL('http://login.example.com/')), 'theme=dark', 'secure cookies need https');
+  assert.equal(cookieHeader(b, new URL('https://login.example.com/')), '', 'another session sees nothing');
+  // a site may not set cookies for a bare top-level domain or for a foreign domain
+  assert.equal(parseSetCookie('x=1; Domain=com', site), null);
+  assert.equal(parseSetCookie('x=1; Domain=evil.net', site), null);
+  // Max-Age=0 removes the cookie
+  storeCookies(a, site, ['user_session=; Max-Age=0; Path=/']);
+  assert.equal(cookieHeader(a, new URL('https://login.example.com/')), 'theme=dark');
+});
+
+test('documents carry their session id into links and forms', () => {
+  const sid = 'a'.repeat(32);
+  const html = rewriteHtml('<head></head><a href="/next">x</a><form action="/session"></form>', 'https://github.com/login', sid);
+  assert.match(html, new RegExp(`href="/proxy\\?url=https%3A%2F%2Fgithub\\.com%2Fnext&amp;s=${sid}"`));
+  assert.match(html, new RegExp(`action="/proxy\\?url=https%3A%2F%2Fgithub\\.com%2Fsession&amp;s=${sid}"`));
+  assert.match(html, new RegExp(`S="${sid}"`), 'the page script knows its session');
+});
