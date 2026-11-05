@@ -153,6 +153,20 @@ export function stylesheetType(upstreamType, fetchDest) {
   return 'text/css; charset=utf-8';
 }
 
+/**
+ * ES module static and dynamic imports with relative or root-relative specifiers resolve against
+ * the module's own (proxied) URL, which lands on this server's root. Rewrite them to proxy URLs.
+ */
+export function rewriteModule(js, base) {
+  // `from "x"`, `import "x"`, `import("x")`; not `.from("x")` calls on other objects.
+  return js.replace(/((?<![.\w$])(?:from\s*|import\s*\(\s*|import\s+))(["'])(\.{0,2}\/[^"'\n\r]+)\2/g,
+    (m, pre, q, u) => `${pre}${q}${proxify(u, base)}${q}`);
+}
+
+export function isScriptType(type) {
+  return /(?:java|ecma)script|module/i.test(type) && !/text\/html/i.test(type);
+}
+
 export function rewriteCss(css, base) {
   return css
     .replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (m, q, u) => `url(${q}${proxify(u, base)}${q})`)
@@ -370,10 +384,13 @@ export async function handleProxy(req, res, clientIp) {
       'x-proxied-url': encodeURI(url.href),
     };
 
-    if (/text\/html|application\/xhtml/i.test(type) || /text\/css/i.test(type)) {
+    if (/text\/html|application\/xhtml/i.test(type) || /text\/css/i.test(type) || isScriptType(type)) {
       const body = await readLimited(decompress(upstream));
       const text = charsetOf(type).decode(body);
-      const rewritten = /css/i.test(type) && !/html/i.test(type) ? rewriteCss(text, url.href) : rewriteHtml(text, url.href);
+      let rewritten;
+      if (isScriptType(type)) rewritten = rewriteModule(text, url.href);
+      else if (/css/i.test(type) && !/html/i.test(type)) rewritten = rewriteCss(text, url.href);
+      else rewritten = rewriteHtml(text, url.href);
       headers['content-type'] = type.replace(/charset=[\w-]+/i, 'charset=utf-8') || 'text/html; charset=utf-8';
       res.writeHead(upstream.statusCode, headers);
       if (/css/i.test(type) && !/html/i.test(type)) cachePut(cacheKey, upstream.statusCode, headers, Buffer.from(rewritten));

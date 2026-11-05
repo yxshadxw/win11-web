@@ -10,6 +10,8 @@ export const IMAGES = {
   freedos: { file: 'freedos722.img', size: 737280 },
   kolibri: { file: 'kolibri.img', size: 1474560 },
   linux: { file: 'linux4.iso', size: 7731200 },
+  win101: { file: 'windows101.img', size: 1474560 },
+  linux3: { file: 'linux3.iso', size: 8638464 },
 };
 
 export function handlePcImage(req, res, pathname) {

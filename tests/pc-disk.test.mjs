@@ -87,3 +87,14 @@ test('zip archives unpack (stored and deflated)', async () => {
   assert.equal(Buffer.from(files[1].data).toString(), 'deflated '.repeat(20));
   await assert.rejects(unzip(Buffer.from('not a zip')), /ZIP/);
 });
+
+test('dosPath gives the 8.3 path the DOS side will see', async () => {
+  const { dosPath } = await import('../public/apps/pc/disk.js');
+  const files = [
+    { path: 'Doom Game/doom.exe', data: new Uint8Array([1]) },
+    { path: 'KEEN.EXE', data: new Uint8Array([1]) },
+  ];
+  assert.equal(dosPath(files, 'Doom Game/doom.exe'), 'DOOMGA~1\\DOOM.EXE');
+  assert.equal(dosPath(files, 'KEEN.EXE'), 'KEEN.EXE');
+  assert.equal(dosPath(files, 'missing.exe'), null);
+});

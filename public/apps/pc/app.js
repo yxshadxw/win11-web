@@ -1,6 +1,6 @@
 // Virtual PC: boots real x86 operating systems in the browser with v86 and hands them the
 // user's programs on a generated FAT16 disk.
-import { buildDisk, isWindowsExe } from './disk.js';
+import { buildDisk, dosPath, isWindowsExe } from './disk.js';
 import { unzip } from './unzip.js';
 
 const MB = 1024 * 1024;
@@ -8,14 +8,19 @@ const $ = (id) => document.getElementById(id);
 const STORE = 'win11web.pc.';
 
 const MACHINES = [
-  { id: 'freedos', icon: '💾', name: 'FreeDOS', about: 'MS-DOS 호환 · 옛날 DOS 게임과 EXE 실행용', boot: 'fda', image: 'freedos', memory: 32 },
-  { id: 'kolibri', icon: '🦅', name: 'KolibriOS', about: '플로피 한 장짜리 그래픽 운영체제 · 게임 포함', boot: 'fda', image: 'kolibri', memory: 64 },
-  { id: 'linux', icon: '🐧', name: 'Linux (Buildroot)', about: '작은 리눅스 · 터미널', boot: 'cdrom', image: 'linux', memory: 64 },
-  { id: 'own', icon: '🪟', name: '내 디스크 이미지', about: 'Windows 95/98, MS-DOS 등 직접 가진 이미지 (.img/.iso)', boot: 'own', memory: 128 },
+  { id: 'freedos', icon: '💾', name: 'FreeDOS', about: 'MS-DOS 호환 · 옛날 DOS 게임과 EXE 실행용', boot: 'fda', image: 'freedos', memory: 64 },
+  { id: 'win101', icon: '🪟', name: 'Windows 1.01', about: '1985년 첫 윈도우 (플로피 부팅)', boot: 'fda', image: 'win101', memory: 32 },
+  { id: 'kolibri', icon: '🦅', name: 'KolibriOS', about: '플로피 한 장짜리 그래픽 운영체제 · 게임 포함', boot: 'fda', image: 'kolibri', memory: 128 },
+  { id: 'linux', icon: '🐧', name: 'Linux (Buildroot)', about: '작은 리눅스 · 터미널', boot: 'cdrom', image: 'linux', memory: 128 },
+  { id: 'linux3', icon: '🐧', name: 'Linux 3 (데모)', about: 'Linux 3.x 커널 ISO', boot: 'cdrom', image: 'linux3', memory: 256 },
+  { id: 'own', icon: '🧩', name: '내 디스크 이미지', about: 'Windows 95/98, MS-DOS 등 직접 가진 이미지 (.img/.iso)', boot: 'own', memory: 256 },
 ];
-const SIZES = { freedos: 737280, kolibri: 1474560, linux: 7731200 };
+const SIZES = { freedos: 737280, win101: 1474560, kolibri: 1474560, linux: 7731200, linux3: 8638464 };
+// Bundles' memory options; the 1GB choice is for big Windows installs.
+const MEMORY_OPTIONS = [16, 32, 64, 128, 256, 512, 1024];
 
 let machine = MACHINES[0];
+let bootedFiles = [];   // the files that went onto the disk at the last boot (what DOS can run)
 let ownImage = null;
 let files = [];
 let emulator = null;
@@ -105,6 +110,15 @@ async function addFiles(list) {
 }
 
 function renderFiles() {
+  renderFileList();
+  const winExe = files.some((f) => /\.exe$/i.test(f.path) && isWindowsExe(f.data));
+  if (winExe && machine.id !== 'own') {
+    $('error').textContent = 'Windows용 EXE가 있습니다. DOS에서는 실행되지 않으니 "내 디스크 이미지"로 Windows 98 등을 부팅해서 실행하세요.';
+  }
+  if (emulator) $('error').textContent = '파일은 다음 부팅 때 디스크에 들어갑니다.';
+}
+
+function renderFileList() {
   $('file-list').replaceChildren(...files.map((f, i) => {
     const li = document.createElement('li');
     const name = document.createElement('span');
@@ -117,6 +131,17 @@ function renderFiles() {
       tag.textContent = isWindowsExe(f.data) ? 'Windows' : 'DOS';
       li.append(tag);
     }
+    const runnable = emulator && machine.id === 'freedos' && /\.(exe|com|bat)$/i.test(f.path) && !isWindowsExe(f.data)
+      && bootedFiles.some((b) => b.path === f.path);
+    if (runnable) {
+      const run = document.createElement('button');
+      run.className = 'run';
+      run.textContent = '▶';
+      run.title = '가상 PC에서 실행';
+      run.setAttribute('aria-label', `${f.path} 실행`);
+      run.onclick = () => runProgram(f.path);
+      li.append(run);
+    }
     const size = document.createElement('small');
     size.textContent = formatSize(f.data.length);
     const remove = document.createElement('button');
@@ -126,16 +151,12 @@ function renderFiles() {
     li.append(size, remove);
     return li;
   }));
-  const winExe = files.some((f) => /\.exe$/i.test(f.path) && isWindowsExe(f.data));
-  if (winExe && machine.id !== 'own') {
-    $('error').textContent = 'Windows용 EXE가 있습니다. DOS에서는 실행되지 않으니 "내 디스크 이미지"로 Windows 98 등을 부팅해서 실행하세요.';
-  }
-  if (emulator) $('error').textContent = '파일은 다음 부팅 때 디스크에 들어갑니다.';
 }
 
 // ---------- emulator ----------
 function setRunning(on) {
   for (const id of ['reset', 'cad', 'mouse', 'fullscreen', 'shot', 'save', 'type']) $(id).disabled = !on;
+  renderFileList();
   $('power').querySelector('span:last-child').textContent = on ? '끄기' : '켜기';
   $('power').classList.toggle('primary', !on);
   $('idle').hidden = on;
@@ -179,6 +200,7 @@ async function start() {
       autostart: true,
     };
     const extra = files.length ? { buffer: buildDisk(files).buffer } : null;
+    bootedFiles = files.slice();
     if (machine.image) {
       const image = { url: `/api/pc/image/${machine.image}`, size: SIZES[machine.image], async: false };
       options[machine.boot] = image;
@@ -227,6 +249,80 @@ async function openDriveC() {
 }
 
 /** Scale the guest screen to the window: whole steps when they fit, so pixels stay sharp. */
+// ---------- touch: the screen becomes a trackpad ----------
+// Drag moves the guest pointer, a quick tap clicks, two fingers right-click, and holding still
+// for half a second drags (press and hold, then release). v86 has its own touch code; this
+// replaces it, so the events are stopped at the wrapper before they reach the guest screen.
+function setupTouch() {
+  const wrap = $('screen-wrap');
+  const SENSITIVITY = 1.8;
+  let last = null;
+  let moved = 0;
+  let fingers = 0;
+  let startedAt = 0;
+  let holdTimer = 0;
+  let dragging = false;
+  const click = (button, down) => emulator?.bus.send('mouse-click', [button === 'left' && down, false, button === 'right' && down]);
+  const tap = (button) => { click(button, true); setTimeout(() => click(button, false), 40); };
+
+  wrap.addEventListener('touchstart', (e) => {
+    if (!emulator) return;
+    e.preventDefault();
+    e.stopPropagation();
+    fingers = Math.max(fingers, e.touches.length);
+    if (e.touches.length === 1) {
+      last = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      moved = 0;
+      startedAt = performance.now();
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => {
+        if (moved < 12 && last) { dragging = true; click('left', true); }
+      }, 450);
+    }
+  }, { capture: true, passive: false });
+
+  wrap.addEventListener('touchmove', (e) => {
+    if (!emulator || !last) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const t = e.touches[0];
+    const dx = t.clientX - last.x;
+    const dy = t.clientY - last.y;
+    last = { x: t.clientX, y: t.clientY };
+    moved += Math.abs(dx) + Math.abs(dy);
+    fingers = Math.max(fingers, e.touches.length);
+    if (moved >= 12) clearTimeout(holdTimer);
+    if (e.touches.length === 1) emulator.bus.send('mouse-delta', [Math.round(dx * SENSITIVITY), -Math.round(dy * SENSITIVITY)]);
+  }, { capture: true, passive: false });
+
+  const end = (e) => {
+    if (!emulator) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.touches.length) return; // other fingers still down
+    clearTimeout(holdTimer);
+    if (dragging) click('left', false);
+    else if (moved < 12 && performance.now() - startedAt < 300) tap(fingers >= 2 ? 'right' : 'left');
+    dragging = false;
+    last = null;
+    fingers = 0;
+  };
+  wrap.addEventListener('touchend', end, { capture: true, passive: false });
+  wrap.addEventListener('touchcancel', end, { capture: true, passive: false });
+}
+setupTouch();
+
+// ---------- run a program from the disk (FreeDOS) ----------
+function runProgram(path) {
+  const dos = dosPath(bootedFiles, path);
+  if (!emulator || !dos) return;
+  const cut = dos.lastIndexOf('\\');
+  const dir = cut >= 0 ? dos.slice(0, cut) : '';
+  const name = cut >= 0 ? dos.slice(cut + 1) : dos;
+  emulator.keyboard_send_text(`${dir ? `CD C:\\${dir}\n` : ''}${name}\n`);
+  $('screen').focus();
+}
+
 function fitScreen() {
   if (!emulator) return;
   // Text mode reports its size in characters, so measure what is actually drawn at 1x.
@@ -357,6 +453,7 @@ new ResizeObserver(fitScreen).observe($('screen-wrap'));
 window.addEventListener('beforeunload', () => { emulator?.destroy(); });
 
 machine = MACHINES.find((m) => m.id === read('machine', 'freedos')) || MACHINES[0];
+$('memory').replaceChildren(...MEMORY_OPTIONS.map((mb) => new Option(`${mb >= 1024 ? `${mb / 1024}GB` : `${mb}MB`}`, String(mb))));
 $('memory').value = String(read(`memory.${machine.id}`, machine.memory));
 renderMachines();
 setRunning(false);

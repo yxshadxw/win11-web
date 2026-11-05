@@ -257,3 +257,32 @@ export function isWindowsExe(bytes) {
   const pe = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0x3c, true);
   return pe + 4 <= bytes.length && bytes[pe] === 0x50 && bytes[pe + 1] === 0x45 && bytes[pe + 2] === 0 && bytes[pe + 3] === 0;
 }
+
+function assignShortNames(node) {
+  const taken = new Set();
+  for (const child of node.children.values()) {
+    const { short } = shortName(child.name, taken);
+    taken.add(short);
+    child.short = short;
+    if (child.dir) assignShortNames(child);
+  }
+}
+
+/**
+ * The DOS path (without the drive letter) that `path` gets on a disk built from `files`, e.g.
+ * 'Doom Game/doom.exe' → 'DOOMGA~1\DOOM.EXE'. Returns null when the file is not in that list.
+ */
+export function dosPath(files, path) {
+  const root = tree(files);
+  assignShortNames(root);
+  let node = root;
+  const parts = [];
+  for (const part of String(path).replace(/\\/g, '/').split('/').filter(Boolean)) {
+    node = node.children.get(part.toUpperCase());
+    if (!node) return null;
+    const name = node.short.slice(0, 8).trim();
+    const ext = node.short.slice(8).trim();
+    parts.push(ext ? `${name}.${ext}` : name);
+  }
+  return parts.length ? parts.join('\\') : null;
+}
