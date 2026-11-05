@@ -154,7 +154,8 @@ function show(tab) {
   } else {
     tab.loading = true;
     tab.title = url.replace(/^https?:\/\//, '');
-    view.src = kind === 'external' ? `/proxy?url=${encodeURIComponent(url)}` : yt || url;
+    // The tab's session id keeps its cookies (logins) across that tab's pages.
+    view.src = kind === 'external' ? `/proxy?url=${encodeURIComponent(url)}${tab.sid ? `&s=${tab.sid}` : ''}` : yt || url;
   }
   render();
 }
@@ -222,6 +223,7 @@ window.addEventListener('message', (e) => {
   if (!tab) return;
   if (e.data.url !== currentUrl(tab)) recordUrl(tab, e.data.url);
   if (e.data.title) tab.title = String(e.data.title).slice(0, 200);
+  if (/^[0-9a-f]{32}$/.test(e.data.sid || '')) tab.sid = e.data.sid;
   render();
 });
 

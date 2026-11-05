@@ -7,6 +7,7 @@ import https from 'node:https';
 import dns from 'node:dns';
 import net from 'node:net';
 import zlib from 'node:zlib';
+import { randomBytes } from 'node:crypto';
 
 export const PROXY_PATH = '/proxy';
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -18,6 +19,12 @@ const RATE_WINDOW_MS = 60_000;
 // loads turn stylesheets into 429 HTML pages, which browsers then refuse to apply.
 const RATE_MAX = 240;
 const RATE_MAX_ASSETS = 3000;
+const RATE_MAX_POST = 60;
+const MAX_POST_BYTES = 1024 * 1024;
+// Cookie jars live in this server's memory, one per browsing session (see jarFor).
+const SESSION_TTL_MS = 2 * 60 * 60_000;
+const MAX_SESSIONS = 500;
+const MAX_COOKIES = 100;
 
 const SANDBOX_CSP = 'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36';
@@ -123,13 +130,13 @@ function safeLookup(hostname, options, callback) {
   });
 }
 
-export function proxify(target, base) {
+export function proxify(target, base, sid = null) {
   const value = String(target).trim();
   if (!value || /^(#|javascript:|data:|blob:|mailto:|tel:|about:)/i.test(value)) return value;
   try {
     const abs = new URL(value, base);
     if (abs.protocol !== 'http:' && abs.protocol !== 'https:') return value;
-    return `${PROXY_PATH}?url=${encodeURIComponent(abs.href)}`;
+    return `${PROXY_PATH}?url=${encodeURIComponent(abs.href)}${sid ? `&s=${sid}` : ''}`;
   } catch {
     return value;
   }
@@ -173,12 +180,12 @@ export function rewriteCss(css, base) {
     .replace(/@import\s+(['"])([^'"]+)\1/gi, (m, q, u) => `@import ${q}${proxify(u, base)}${q}`);
 }
 
-function injectedScript(pageUrl) {
+function injectedScript(pageUrl, sid) {
   // Runs inside the sandboxed page: keeps navigation inside the proxy and reports the URL.
-  return `<script>(function(){var P=${JSON.stringify(PROXY_PATH)}+'?url=',B=${JSON.stringify(pageUrl)};
-function px(u){try{var a=new URL(u,B);if(a.protocol!=='http:'&&a.protocol!=='https:')return null;return P+encodeURIComponent(a.href);}catch(e){return null;}}
-try{parent.postMessage({type:'win11web-proxy-nav',url:B,title:document.title},'*');}catch(e){}
-addEventListener('DOMContentLoaded',function(){try{parent.postMessage({type:'win11web-proxy-nav',url:B,title:document.title},'*');}catch(e){}});
+  return `<script>(function(){var P=${JSON.stringify(PROXY_PATH)}+'?url=',B=${JSON.stringify(pageUrl)},S=${JSON.stringify(sid || '')};
+function px(u){try{var a=new URL(u,B);if(a.protocol!=='http:'&&a.protocol!=='https:')return null;return P+encodeURIComponent(a.href)+(S?'&s='+S:'');}catch(e){return null;}}
+try{parent.postMessage({type:'win11web-proxy-nav',url:B,title:document.title,sid:S},'*');}catch(e){}
+addEventListener('DOMContentLoaded',function(){try{parent.postMessage({type:'win11web-proxy-nav',url:B,title:document.title,sid:S},'*');}catch(e){}});
 document.addEventListener('submit',function(e){var f=e.target;if((f.method||'get').toLowerCase()!=='get')return;e.preventDefault();
 var a=new URL(f.getAttribute('data-orig-action')||B,B);new FormData(f).forEach(function(v,k){if(typeof v==='string')a.searchParams.append(k,v);});
 var t=px(a.href);if(t)location.href=t;},true);
@@ -193,7 +200,7 @@ var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,
 })();</script>`;
 }
 
-export function rewriteHtml(html, pageUrl) {
+export function rewriteHtml(html, pageUrl, sid = null) {
   let out = html
     .replace(/<meta[^>]+http-equiv\s*=\s*["']?(content-security-policy|x-frame-options|refresh)["']?[^>]*>/gi, '')
     .replace(/\s(integrity|nonce)\s*=\s*("[^"]*"|'[^']*')/gi, '')
@@ -202,14 +209,14 @@ export function rewriteHtml(html, pageUrl) {
   // form actions keep their original target for the GET-form handler in the injected script
   out = out.replace(/(<form\b[^>]*?\saction\s*=\s*)(["'])(.*?)\2/gi, (m, pre, q, v) => {
     const orig = new URL(decodeAttr(v) || pageUrl, pageUrl).href;
-    return `${pre}${q}${encodeAttr(proxify(decodeAttr(v), pageUrl))}${q} data-orig-action=${q}${encodeAttr(orig)}${q}`;
+    return `${pre}${q}${encodeAttr(proxify(decodeAttr(v), pageUrl, sid))}${q} data-orig-action=${q}${encodeAttr(orig)}${q}`;
   });
   out = out.replace(/(\s(?:href|src|poster|data-src|background)\s*=\s*)(["'])(.*?)\2/gi,
-    (m, pre, q, v) => `${pre}${q}${encodeAttr(proxify(decodeAttr(v), pageUrl))}${q}`);
+    (m, pre, q, v) => `${pre}${q}${encodeAttr(proxify(decodeAttr(v), pageUrl, sid))}${q}`);
   out = out.replace(/(\s(?:srcset|data-srcset)\s*=\s*)(["'])(.*?)\2/gi, (m, pre, q, v) => {
     const set = decodeAttr(v).split(',').map((part) => {
       const [u, ...rest] = part.trim().split(/\s+/);
-      return [proxify(u, pageUrl), ...rest].join(' ');
+      return [proxify(u, pageUrl, sid), ...rest].join(' ');
     }).join(', ');
     return `${pre}${q}${encodeAttr(set)}${q}`;
   });
@@ -217,7 +224,7 @@ export function rewriteHtml(html, pageUrl) {
   out = out.replace(/(\sstyle\s*=\s*)(["'])(.*?)\2/gi,
     (m, pre, q, v) => `${pre}${q}${encodeAttr(rewriteCss(decodeAttr(v), pageUrl))}${q}`);
 
-  const script = injectedScript(pageUrl);
+  const script = injectedScript(pageUrl, sid);
   if (/<head\b[^>]*>/i.test(out)) return out.replace(/<head\b[^>]*>/i, (h) => h + script);
   return script + out;
 }
@@ -243,7 +250,7 @@ const agents = {
   'https:': new https.Agent({ keepAlive: true, maxSockets: 64 }),
 };
 
-function request(url, method, headers) {
+function request(url, method, headers, body) {
   return new Promise((resolve, reject) => {
     const lib = url.protocol === 'https:' ? https : http;
     const req = lib.request(url, {
@@ -251,7 +258,118 @@ function request(url, method, headers) {
     }, resolve);
     req.on('timeout', () => req.destroy(new ProxyError(504, '응답 시간이 초과되었습니다.')));
     req.on('error', reject);
-    req.end();
+    req.end(body);
+  });
+}
+
+// ---------- sessions and cookies ----------
+// A browsing session (one per tab) carries its cookies on the server, keyed by a random id that
+// the proxy puts in every link and form as s=. Browsers would refuse third-party cookies from the
+// sandboxed frame, and the cookies never reach the visitor's browser at all.
+export function newSessionId() {
+  return randomBytes(16).toString('hex');
+}
+
+export function validSession(value) {
+  return typeof value === 'string' && /^[0-9a-f]{32}$/.test(value) ? value : null;
+}
+
+const jars = new Map();
+
+function jarFor(sid) {
+  let jar = jars.get(sid);
+  if (!jar) {
+    const now = Date.now();
+    for (const [key, j] of jars) if (now - j.time > SESSION_TTL_MS) jars.delete(key);
+    if (jars.size >= MAX_SESSIONS) jars.delete(jars.keys().next().value);
+    jar = { time: now, cookies: new Map() };
+    jars.set(sid, jar);
+  }
+  jar.time = Date.now();
+  return jar;
+}
+
+function defaultPath(pathname) {
+  return pathname.slice(0, pathname.lastIndexOf('/') + 1) || '/';
+}
+
+/** One Set-Cookie header, parsed for the response's host. Returns null when it is not allowed. */
+export function parseSetCookie(line, url) {
+  const parts = String(line).split(';');
+  const eq = parts[0].indexOf('=');
+  if (eq < 1) return null;
+  const cookie = {
+    name: parts[0].slice(0, eq).trim(), value: parts[0].slice(eq + 1).trim(),
+    domain: url.hostname, hostOnly: true, path: defaultPath(url.pathname), secure: false, expires: 0, remove: false,
+  };
+  let maxAge = null;
+  for (const raw of parts.slice(1)) {
+    const cut = raw.indexOf('=');
+    const key = (cut < 0 ? raw : raw.slice(0, cut)).trim().toLowerCase();
+    const val = cut < 0 ? '' : raw.slice(cut + 1).trim();
+    if (key === 'domain') {
+      const d = val.replace(/^\./, '').toLowerCase();
+      // A site may only set cookies for its own domain, never for a bare top-level domain.
+      if (!d.includes('.') || !(url.hostname === d || url.hostname.endsWith(`.${d}`))) return null;
+      cookie.domain = d;
+      cookie.hostOnly = false;
+    } else if (key === 'path' && val.startsWith('/')) cookie.path = val;
+    else if (key === 'secure') cookie.secure = true;
+    else if (key === 'max-age') maxAge = Number(val);
+    else if (key === 'expires' && maxAge === null) {
+      const t = Date.parse(val);
+      if (!Number.isNaN(t)) cookie.expires = t;
+    }
+  }
+  if (maxAge !== null && !Number.isNaN(maxAge)) cookie.expires = maxAge > 0 ? Date.now() + maxAge * 1000 : 1;
+  if (cookie.expires && cookie.expires <= Date.now()) cookie.remove = true;
+  return cookie;
+}
+
+export function storeCookies(sid, url, setCookies) {
+  for (const line of [].concat(setCookies || [])) {
+    const cookie = parseSetCookie(line, url);
+    if (!cookie) continue;
+    const key = `${cookie.domain}|${cookie.path}|${cookie.name}`;
+    if (cookie.remove) { jars.get(sid)?.cookies.delete(key); continue; }
+    const jar = jarFor(sid);
+    jar.cookies.set(key, cookie);
+    if (jar.cookies.size > MAX_COOKIES) jar.cookies.delete(jar.cookies.keys().next().value);
+  }
+}
+
+/** The Cookie header this session sends to `url`. */
+export function cookieHeader(sid, url, now = Date.now()) {
+  const jar = jars.get(sid);
+  if (!jar) return '';
+  jar.time = now;
+  const matching = [];
+  for (const [key, c] of jar.cookies) {
+    if (c.expires && c.expires < now) { jar.cookies.delete(key); continue; }
+    const host = c.hostOnly ? url.hostname === c.domain : url.hostname === c.domain || url.hostname.endsWith(`.${c.domain}`);
+    if (!host || !url.pathname.startsWith(c.path)) continue;
+    if (c.secure && url.protocol !== 'https:') continue;
+    matching.push(c);
+  }
+  matching.sort((a, b) => b.path.length - a.path.length);
+  return matching.map((c) => `${c.name}=${c.value}`).join('; ');
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > MAX_POST_BYTES) {
+        reject(new ProxyError(413, '보내는 내용이 너무 큽니다.'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
   });
 }
 
@@ -338,35 +456,56 @@ export async function handleProxy(req, res, clientIp) {
     res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': SANDBOX_CSP, 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
     res.end(errorPage(status, message));
   };
-  if (req.method !== 'GET' && req.method !== 'HEAD') return sendError(405, '이 프록시는 페이지 열기(GET)만 지원합니다.');
+  const method = req.method;
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'POST') {
+    return sendError(405, '이 프록시는 페이지 열기와 폼 전송(GET, POST)만 지원합니다.');
+  }
   // A page load is a document request; everything else is a sub-resource of some page.
   const dest = String(req.headers['sec-fetch-dest'] || 'document');
   const isDocument = dest === 'document' || dest === 'iframe' || dest === 'frame';
-  if (rateLimited(isDocument ? clientIp : `${clientIp}|assets`, Date.now(), isDocument ? RATE_MAX : RATE_MAX_ASSETS)) {
+  const key = method === 'POST' ? `${clientIp}|post` : isDocument ? clientIp : `${clientIp}|assets`;
+  const max = method === 'POST' ? RATE_MAX_POST : isDocument ? RATE_MAX : RATE_MAX_ASSETS;
+  if (rateLimited(key, Date.now(), max)) {
     return sendError(429, '요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
   }
 
   try {
     const params = new URL(req.url, 'http://local').searchParams;
     let url = normalizeTarget(params.get('url'));
-    const cached = req.method === 'GET' ? cacheGet(url.href) : null;
+    // Documents always get a session (their links carry it); other requests only when they have one.
+    const sid = validSession(params.get('s')) || (isDocument ? newSessionId() : null);
+    let payload = method === 'POST' ? await readBody(req) : undefined;
+    const cached = method === 'GET' && !sid ? cacheGet(url.href) : null;
     if (cached) {
       res.writeHead(cached.status, { ...cached.headers, 'x-proxy-cache': 'hit' });
       return res.end(cached.body);
     }
     const cacheKey = url.href;
     let upstream;
+    let sendMethod = method;
     for (let i = 0; ; i++) {
-      upstream = await request(url, req.method, {
+      const headers = {
         'user-agent': UA,
         accept: req.headers.accept || '*/*',
         'accept-language': req.headers['accept-language'] || 'ko-KR,ko;q=0.9,en;q=0.8',
         'accept-encoding': 'gzip, deflate, br',
-      });
+      };
+      const cookie = sid ? cookieHeader(sid, url) : '';
+      if (cookie) headers.cookie = cookie;
+      if (sendMethod === 'POST') {
+        headers['content-type'] = req.headers['content-type'] || 'application/x-www-form-urlencoded';
+        headers['content-length'] = String(payload.length);
+        headers.origin = url.origin;
+        headers.referer = `${url.origin}/`;
+      }
+      upstream = await request(url, sendMethod, headers, payload);
+      if (sid && upstream.headers['set-cookie']) storeCookies(sid, url, upstream.headers['set-cookie']);
       const loc = upstream.headers.location;
       if (upstream.statusCode >= 300 && upstream.statusCode < 400 && loc) {
         upstream.resume();
         if (i >= MAX_REDIRECTS) throw new ProxyError(508, '리다이렉트가 너무 많습니다.');
+        // As in browsers: after a POST, 301-303 continue with GET; 307/308 resend the body.
+        if (sendMethod === 'POST' && upstream.statusCode < 307) { sendMethod = 'GET'; payload = undefined; }
         url = normalizeTarget(new URL(loc, url).href);
         continue;
       }
@@ -390,18 +529,19 @@ export async function handleProxy(req, res, clientIp) {
       let rewritten;
       if (isScriptType(type)) rewritten = rewriteModule(text, url.href);
       else if (/css/i.test(type) && !/html/i.test(type)) rewritten = rewriteCss(text, url.href);
-      else rewritten = rewriteHtml(text, url.href);
+      else rewritten = rewriteHtml(text, url.href, sid);
       headers['content-type'] = type.replace(/charset=[\w-]+/i, 'charset=utf-8') || 'text/html; charset=utf-8';
       res.writeHead(upstream.statusCode, headers);
-      if (/css/i.test(type) && !/html/i.test(type)) cachePut(cacheKey, upstream.statusCode, headers, Buffer.from(rewritten));
-      return res.end(req.method === 'HEAD' ? undefined : rewritten);
+      // Shared cache only for responses that do not depend on a visitor's cookies.
+      if (method === 'GET' && !sid && /css/i.test(type) && !/html/i.test(type)) cachePut(cacheKey, upstream.statusCode, headers, Buffer.from(rewritten));
+      return res.end(method === 'HEAD' ? undefined : rewritten);
     }
 
     const len = Number(upstream.headers['content-length'] || 0);
     if (len > MAX_BYTES) { upstream.resume(); throw new ProxyError(413, '파일이 너무 큽니다.'); }
     if (upstream.headers['content-encoding']) headers['content-encoding'] = upstream.headers['content-encoding'];
     if (len) headers['content-length'] = String(len);
-    if (req.method === 'GET' && len && len <= ASSET_MAX_ITEM && upstream.statusCode === 200) {
+    if (method === 'GET' && !sid && len && len <= ASSET_MAX_ITEM && upstream.statusCode === 200) {
       const body = await readLimited(upstream); // still compressed: stored and sent as-is
       cachePut(cacheKey, 200, headers, body);
       res.writeHead(200, headers);
