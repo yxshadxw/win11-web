@@ -62,3 +62,7 @@ body { display: flex; flex-direction: column; }
   .panel { width: auto; max-height: 45%; border-right: 0; border-bottom: 1px solid var(--border); }
   .bar .btn span:not(.ico) { display: none; }
 }
+
+.files .run { min-width: 28px; border: 1px solid var(--accent); border-radius: 4px; background: none; color: var(--accent); cursor: pointer; }
+.files .run:hover { background: var(--surface-hover); }
+#screen-wrap, #screen { touch-action: none; }
