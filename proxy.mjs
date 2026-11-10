@@ -334,19 +334,33 @@ function dirOf(url) {
   return url.origin + url.pathname.slice(0, url.pathname.lastIndexOf('/') + 1);
 }
 
+// A sandboxed iframe without allow-same-origin -- what every proxied page runs in -- cannot
+// read or send cookies for its own (opaque) origin at all, confirmed in this session's own
+// testing: a request with no proxy wrapper and no query string of any kind carries neither a
+// session id nor the win11wsid cookie, so there is no way to know which browsing session it
+// came from. The win11wsid cookie is still set and read, for a browser or embedding that does
+// allow it, but as a last resort for a completely unidentifiable request this one shared,
+// global fallback is used instead: the most recent asset directory seen across all sessions.
+// On a single-visitor or low-traffic site this is right far more often than the alternative,
+// which is a guaranteed failure; on a busier one it can occasionally guess another session's
+// asset host, which only risks a 404, same as doing nothing would.
+let globalAssetBase = null;
+
 export function rememberAssetBase(sid, url) {
+  globalAssetBase = dirOf(url);
   if (!sid) return;
-  jarFor(sid).assetBase = dirOf(url);
+  jarFor(sid).assetBase = globalAssetBase;
 }
 
 /** The absolute URL a lost request (its own path and search, as received) most likely meant. */
 export function recallTarget(sid, pathname, search = '') {
-  if (!sid) return null;
-  const jar = jars.get(sid);
-  if (!jar) return null;
-  jar.time = Date.now();
-  if (jar.assetBase) return jar.assetBase + pathname.slice(pathname.lastIndexOf('/') + 1) + search;
-  if (jar.docOrigin) return jar.docOrigin + pathname + search;
+  const jar = sid && jars.get(sid);
+  if (jar) {
+    jar.time = Date.now();
+    if (jar.assetBase) return jar.assetBase + pathname.slice(pathname.lastIndexOf('/') + 1) + search;
+    if (jar.docOrigin) return jar.docOrigin + pathname + search;
+  }
+  if (globalAssetBase) return globalAssetBase + pathname.slice(pathname.lastIndexOf('/') + 1) + search;
   return null;
 }
 
