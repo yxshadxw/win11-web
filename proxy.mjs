@@ -174,6 +174,18 @@ export function isScriptType(type) {
   return /(?:java|ecma)script|module/i.test(type) && !/text\/html/i.test(type);
 }
 
+/**
+ * Same problem as stylesheetType, for scripts: some sites serve .js as text/plain or
+ * application/octet-stream (misconfigured servers, some CDNs). With this proxy's nosniff
+ * header, the browser then refuses to run a <script> whose response isn't labeled as
+ * JavaScript, even though it would run fine as-is. Relabel it when the browser says the
+ * request is for a script.
+ */
+export function scriptType(upstreamType, fetchDest) {
+  if (fetchDest !== 'script' || /text\/html|application\/xhtml/i.test(upstreamType) || isScriptType(upstreamType)) return upstreamType;
+  return 'text/javascript; charset=utf-8';
+}
+
 export function rewriteCss(css, base) {
   return css
     .replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (m, q, u) => `url(${q}${proxify(u, base)}${q})`)
@@ -512,7 +524,10 @@ export async function handleProxy(req, res, clientIp) {
       break;
     }
 
-    const type = stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']);
+    const type = scriptType(
+      stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']),
+      req.headers['sec-fetch-dest'],
+    );
     const headers = {
       'content-type': type || 'application/octet-stream',
       'content-security-policy': SANDBOX_CSP,
