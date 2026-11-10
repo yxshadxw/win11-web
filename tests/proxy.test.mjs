@@ -115,3 +115,13 @@ test('documents carry their session id into links and forms', () => {
   assert.match(html, new RegExp(`action="/proxy\\?url=https%3A%2F%2Fgithub\\.com%2Fsession&amp;s=${sid}"`));
   assert.match(html, new RegExp(`S="${sid}"`), 'the page script knows its session');
 });
+
+test('script requests get a JS type even when the site labels it otherwise', async () => {
+  const { scriptType } = await import('../proxy.mjs');
+  assert.equal(scriptType('text/plain', 'script'), 'text/javascript; charset=utf-8');
+  assert.equal(scriptType('application/octet-stream', 'script'), 'text/javascript; charset=utf-8');
+  assert.equal(scriptType('application/javascript; charset=utf-8', 'script'), 'application/javascript; charset=utf-8');
+  assert.equal(scriptType('text/html', 'script'), 'text/html', 'an HTML error page is not restyled');
+  assert.equal(scriptType('text/plain', 'image'), 'text/plain', 'other requests are untouched');
+  assert.equal(scriptType('text/plain', undefined), 'text/plain');
+});
