@@ -3,7 +3,7 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { handleProxy, PROXY_PATH, rateLimited } from './proxy.mjs';
+import { handleProxy, PROXY_PATH, rateLimited, recallOrigin, sidFromCookieHeader, RATE_MAX_ASSETS } from './proxy.mjs';
 import { handleYouTube } from './youtube.mjs';
 import { handleWeather } from './weather.mjs';
 import { handleChess } from './chess-online.mjs';
@@ -77,13 +77,37 @@ async function serveStatic(req, res, pathname) {
     if (req.method === 'HEAD') return res.end();
     createReadStream(file).pipe(res);
   } catch {
-    notFound(res);
+    fallbackToProxy(req, res, pathname) || notFound(res);
   }
 }
 
 function notFound(res) {
   res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
   res.end('404 Not Found');
+}
+
+/**
+ * A page open in the Chrome app's proxy sometimes computes an asset URL from its own address
+ * (document.baseURI, location.origin) instead of a path we rewrote, landing the request on our
+ * own host with no proxy wrapper at all (a bare /chunk-abc123.js). When the visitor's win11wsid
+ * cookie says which session this came from, and we remember that session's real page origin
+ * (set in proxy.mjs on every document load), send it back through the proxy at the right place
+ * instead of 404ing. Only GET/HEAD: anything else is left alone rather than redirected blindly.
+ */
+function fallbackToProxy(req, res, pathname) {
+  if ((req.method !== 'GET' && req.method !== 'HEAD') || pathname.startsWith('/api/') || pathname === PROXY_PATH) return false;
+  const sid = sidFromCookieHeader(req.headers.cookie);
+  const origin = sid && recallOrigin(sid);
+  if (!origin) return false;
+  if (rateLimited(`${clientIp(req)}|assets`, Date.now(), RATE_MAX_ASSETS)) {
+    res.writeHead(429, { 'content-type': 'text/plain; charset=utf-8' });
+    res.end('요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
+    return true;
+  }
+  const target = origin + req.url;
+  res.writeHead(302, { location: `${PROXY_PATH}?url=${encodeURIComponent(target)}&s=${sid}`, 'cache-control': 'no-store' });
+  res.end();
+  return true;
 }
 
 const server = createServer((req, res) => {

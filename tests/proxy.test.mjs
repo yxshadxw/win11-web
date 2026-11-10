@@ -125,3 +125,25 @@ test('script requests get a JS type even when the site labels it otherwise', asy
   assert.equal(scriptType('text/plain', 'image'), 'text/plain', 'other requests are untouched');
   assert.equal(scriptType('text/plain', undefined), 'text/plain');
 });
+
+test('a session\'s page origin can be remembered and recalled', async () => {
+  const { rememberOrigin, recallOrigin, newSessionId } = await import('../proxy.mjs');
+  const sid = newSessionId();
+  assert.equal(recallOrigin(sid), null, 'nothing remembered yet');
+  rememberOrigin(sid, 'https://github.com');
+  assert.equal(recallOrigin(sid), 'https://github.com');
+  rememberOrigin(sid, 'https://example.org');
+  assert.equal(recallOrigin(sid), 'https://example.org', 'a later page replaces the remembered origin');
+  assert.equal(recallOrigin(newSessionId()), null, 'a different session sees nothing');
+  assert.equal(recallOrigin(null), null);
+});
+
+test('sidFromCookieHeader reads win11wsid out of a Cookie header', async () => {
+  const { sidFromCookieHeader } = await import('../proxy.mjs');
+  const sid = 'b'.repeat(32);
+  assert.equal(sidFromCookieHeader(`win11wsid=${sid}`), sid);
+  assert.equal(sidFromCookieHeader(`theme=dark; win11wsid=${sid}; other=1`), sid);
+  assert.equal(sidFromCookieHeader('win11wsid=not-hex-and-too-short'), null);
+  assert.equal(sidFromCookieHeader(''), null);
+  assert.equal(sidFromCookieHeader(undefined), null);
+});
