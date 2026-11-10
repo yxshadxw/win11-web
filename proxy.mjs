@@ -305,16 +305,27 @@ function defaultPath(pathname) {
   return pathname.slice(0, pathname.lastIndexOf('/') + 1) || '/';
 }
 
-// Many sites build asset URLs from document.baseURI or location.origin at runtime (webpack's
-// auto public-path, for one). Since the page's real address is our /proxy?url=...&s=... URL,
-// that lands the asset request on our own origin at a bare path, with the real target lost.
-// Remembering each session's current page origin lets us recover: a request that arrives for
-// our own host, or with no proxy wrapper at all, is retargeted at that remembered origin.
+// Many sites build asset URLs from a script's own address or document.baseURI at runtime
+// (webpack's auto public-path, for one), stripping everything from "?" on first. Since the
+// page's and every script's real address is a /proxy?url=...&s=... URL, that computation lands
+// the asset request on our own origin at a bare path, with the real target's whole origin lost.
+// The fix needs the right origin to retarget at, which is often NOT the page's own origin: many
+// sites (GitHub included) serve their scripts and styles from a separate asset/CDN host. So each
+// session remembers two things: the page's own origin (docOrigin, from the document load) and
+// the origin its scripts and stylesheets actually came from (assetOrigin, updated on every script
+// or CSS response) -- the latter is what a script's own public-path computation most likely
+// meant, and is what a misdirected request is retargeted at, falling back to docOrigin for a site
+// that serves everything from one host.
 export const SID_COOKIE = 'win11wsid';
 
 export function rememberOrigin(sid, origin) {
   if (!sid) return;
-  jarFor(sid).origin = origin;
+  jarFor(sid).docOrigin = origin;
+}
+
+export function rememberAssetOrigin(sid, origin) {
+  if (!sid) return;
+  jarFor(sid).assetOrigin = origin;
 }
 
 export function recallOrigin(sid) {
@@ -322,7 +333,7 @@ export function recallOrigin(sid) {
   const jar = jars.get(sid);
   if (!jar) return null;
   jar.time = Date.now();
-  return jar.origin || null;
+  return jar.assetOrigin || jar.docOrigin || null;
 }
 
 /** The win11wsid value from a visitor's Cookie header, if any looks valid. */
@@ -559,12 +570,17 @@ export async function handleProxy(req, res, clientIp) {
       }
       break;
     }
-    if (isDocument && sid) rememberOrigin(sid, url.origin);
 
     const type = scriptType(
       stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']),
       req.headers['sec-fetch-dest'],
     );
+    if (sid) {
+      if (isDocument) rememberOrigin(sid, url.origin);
+      // Many sites serve their scripts and styles from a separate asset/CDN host, and it is
+      // that host, not the page's own, that a script's own URL computation usually means.
+      else if (isScriptType(type) || /text\/css/i.test(type)) rememberAssetOrigin(sid, url.origin);
+    }
     const headers = {
       'content-type': type || 'application/octet-stream',
       'content-security-policy': SANDBOX_CSP,
