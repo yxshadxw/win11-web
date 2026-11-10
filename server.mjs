@@ -3,7 +3,7 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { handleProxy, PROXY_PATH, rateLimited, recallOrigin, sidFromCookieHeader, RATE_MAX_ASSETS } from './proxy.mjs';
+import { handleProxy, PROXY_PATH, rateLimited, recallTarget, sidFromCookieHeader, RATE_MAX_ASSETS } from './proxy.mjs';
 import { handleYouTube } from './youtube.mjs';
 import { handleWeather } from './weather.mjs';
 import { handleChess } from './chess-online.mjs';
@@ -90,22 +90,24 @@ function notFound(res) {
  * A page open in the Chrome app's proxy sometimes computes an asset or fetch/form URL from its
  * own address (document.baseURI, location.origin) instead of a path we rewrote, landing the
  * request on our own host with no proxy wrapper at all (a bare /chunk-abc123.js, or a POST to
- * /some/api/path). When the visitor's win11wsid cookie says which session this came from, and we
- * remember that session's real page origin (set in proxy.mjs on every document load), send it
- * back through the proxy at the right place instead of 404ing or 405ing. A 307 keeps the original
- * method and body on the redirect (unlike 302/303, which browsers turn into a GET).
+ * /some/api/path) -- usually keeping only the filename, any real directory lost along with the
+ * origin. When the visitor's win11wsid cookie says which session this came from, recallTarget
+ * (proxy.mjs) rebuilds the real address from what that session's other, correctly-addressed
+ * requests have shown it (the directory they live in, or failing that the page's own origin),
+ * and this sends the request back through the proxy at that address instead of 404ing or 405ing.
+ * A 307 keeps the original method and body on the redirect (302/303 would turn a POST into a GET).
  */
 function fallbackToProxy(req, res, pathname) {
   if (pathname.startsWith('/api/') || pathname === PROXY_PATH) return false;
   const sid = sidFromCookieHeader(req.headers.cookie);
-  const origin = sid && recallOrigin(sid);
-  if (!origin) return false;
+  const { pathname: p, search } = new URL(req.url, 'http://local');
+  const target = sid && recallTarget(sid, p, search);
+  if (!target) return false;
   if (rateLimited(`${clientIp(req)}|assets`, Date.now(), RATE_MAX_ASSETS)) {
     res.writeHead(429, { 'content-type': 'text/plain; charset=utf-8' });
     res.end('요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
     return true;
   }
-  const target = origin + req.url;
   res.writeHead(307, { location: `${PROXY_PATH}?url=${encodeURIComponent(target)}&s=${sid}`, 'cache-control': 'no-store' });
   res.end();
   return true;
