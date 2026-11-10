@@ -308,14 +308,20 @@ function defaultPath(pathname) {
 // Many sites build asset URLs from a script's own address or document.baseURI at runtime
 // (webpack's auto public-path, for one), stripping everything from "?" on first. Since the
 // page's and every script's real address is a /proxy?url=...&s=... URL, that computation lands
-// the asset request on our own origin at a bare path, with the real target's whole origin lost.
-// The fix needs the right origin to retarget at, which is often NOT the page's own origin: many
-// sites (GitHub included) serve their scripts and styles from a separate asset/CDN host. So each
-// session remembers two things: the page's own origin (docOrigin, from the document load) and
-// the origin its scripts and stylesheets actually came from (assetOrigin, updated on every script
-// or CSS response) -- the latter is what a script's own public-path computation most likely
-// meant, and is what a misdirected request is retargeted at, falling back to docOrigin for a site
-// that serves everything from one host.
+// the asset request on our own host at a bare path (often the filename alone, any directory
+// lost too), with the real target's whole origin -- and usually its directory -- gone. GitHub
+// serves every script and style from one flat directory on a separate CDN host
+// (github.githubassets.com/assets/), so recovering just the origin and keeping the broken
+// request's own (wrong, or missing) path is not enough: what the browser kept intact across
+// every variant we saw was only the filename.
+//
+// So each session remembers, as soon as a request for a script or stylesheet names its real,
+// external target (recorded at request time -- not after the fetch completes, so a misdirected
+// request that races a correct one for a different asset is not left with nothing): assetBase,
+// the directory that request's URL lives in; and docOrigin, the page's own origin (from the
+// document load), as a weaker fallback for a site that serves everything from one host and has
+// no separate asset directory to speak of. Recovering a lost request means assetBase + its own
+// filename, falling back to docOrigin + its own path only when no assetBase is known yet.
 export const SID_COOKIE = 'win11wsid';
 
 export function rememberOrigin(sid, origin) {
@@ -323,17 +329,25 @@ export function rememberOrigin(sid, origin) {
   jarFor(sid).docOrigin = origin;
 }
 
-export function rememberAssetOrigin(sid, origin) {
-  if (!sid) return;
-  jarFor(sid).assetOrigin = origin;
+/** `url`'s directory, e.g. https://x.com/assets/foo.js -> https://x.com/assets/ */
+function dirOf(url) {
+  return url.origin + url.pathname.slice(0, url.pathname.lastIndexOf('/') + 1);
 }
 
-export function recallOrigin(sid) {
+export function rememberAssetBase(sid, url) {
+  if (!sid) return;
+  jarFor(sid).assetBase = dirOf(url);
+}
+
+/** The absolute URL a lost request (its own path and search, as received) most likely meant. */
+export function recallTarget(sid, pathname, search = '') {
   if (!sid) return null;
   const jar = jars.get(sid);
   if (!jar) return null;
   jar.time = Date.now();
-  return jar.assetOrigin || jar.docOrigin || null;
+  if (jar.assetBase) return jar.assetBase + pathname.slice(pathname.lastIndexOf('/') + 1) + search;
+  if (jar.docOrigin) return jar.docOrigin + pathname + search;
+  return null;
 }
 
 /** The win11wsid value from a visitor's Cookie header, if any looks valid. */
@@ -525,13 +539,19 @@ export async function handleProxy(req, res, clientIp) {
     // either from their own s= (wrapped by us) or, failing that, the visitor's win11wsid cookie
     // (set below) for requests a page issued in a way we could not rewrite at all.
     const sid = validSession(params.get('s')) || sidFromCookieHeader(req.headers.cookie) || (isDocument ? newSessionId() : null);
-    // A page that computes its own asset origin at runtime (document.baseURI, location.origin)
+    // A page that computes its own asset address at runtime (document.baseURI, location.origin)
     // sometimes lands the request back on our own host instead of the real one. Recover it from
-    // what we remember as this session's current page.
+    // what we remember of this session's real assets or page.
     const ownHost = String(req.headers.host || '').split(':')[0].toLowerCase();
     if (sid && ownHost && url.hostname.toLowerCase() === ownHost) {
-      const real = recallOrigin(sid);
-      if (real) url = normalizeTarget(real + url.pathname + url.search);
+      const real = recallTarget(sid, url.pathname, url.search);
+      if (real) url = normalizeTarget(real);
+    }
+    // Recorded from the request's own URL, not its response or Sec-Fetch-Dest (unreliable --
+    // absent entirely in some browsers), so a lost request racing a good one for a different
+    // asset is never left with stale or missing information: whichever arrives first wins.
+    if (sid && url.hostname.toLowerCase() !== ownHost && /\.(?:m?js|css)(?:[?#]|$)/i.test(url.pathname)) {
+      rememberAssetBase(sid, url);
     }
     let payload = method === 'POST' ? await readBody(req) : undefined;
     const cached = method === 'GET' && !sid ? cacheGet(url.href) : null;
@@ -575,12 +595,7 @@ export async function handleProxy(req, res, clientIp) {
       stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']),
       req.headers['sec-fetch-dest'],
     );
-    if (sid) {
-      if (isDocument) rememberOrigin(sid, url.origin);
-      // Many sites serve their scripts and styles from a separate asset/CDN host, and it is
-      // that host, not the page's own, that a script's own URL computation usually means.
-      else if (isScriptType(type) || /text\/css/i.test(type)) rememberAssetOrigin(sid, url.origin);
-    }
+    if (isDocument && sid) rememberOrigin(sid, url.origin);
     const headers = {
       'content-type': type || 'application/octet-stream',
       'content-security-policy': SANDBOX_CSP,

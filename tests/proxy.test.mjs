@@ -126,21 +126,31 @@ test('script requests get a JS type even when the site labels it otherwise', asy
   assert.equal(scriptType('text/plain', undefined), 'text/plain');
 });
 
-test('a session\'s page origin can be remembered and recalled', async () => {
-  const { rememberOrigin, rememberAssetOrigin, recallOrigin, newSessionId } = await import('../proxy.mjs');
+test('recallTarget falls back to the page\'s own origin when no asset directory is known', async () => {
+  const { rememberOrigin, recallTarget, newSessionId } = await import('../proxy.mjs');
   const sid = newSessionId();
-  assert.equal(recallOrigin(sid), null, 'nothing remembered yet');
-  rememberOrigin(sid, 'https://github.com');
-  assert.equal(recallOrigin(sid), 'https://github.com');
+  assert.equal(recallTarget(sid, '/foo.css', ''), null, 'nothing remembered yet');
   rememberOrigin(sid, 'https://example.org');
-  assert.equal(recallOrigin(sid), 'https://example.org', 'a later page replaces the remembered origin');
-  assert.equal(recallOrigin(newSessionId()), null, 'a different session sees nothing');
-  assert.equal(recallOrigin(null), null);
-  // A site that serves scripts/styles from a separate CDN host (GitHub's githubassets.com, for
-  // one) needs that host recalled, not the page's own -- a script's own URL computation almost
-  // always means the asset host it came from.
-  rememberAssetOrigin(sid, 'https://github.githubassets.com');
-  assert.equal(recallOrigin(sid), 'https://github.githubassets.com', 'the asset host wins over the page\'s own');
+  assert.equal(recallTarget(sid, '/foo.css', '?v=1'), 'https://example.org/foo.css?v=1');
+  assert.equal(recallTarget(newSessionId(), '/foo.css'), null, 'a different session sees nothing');
+  assert.equal(recallTarget(null, '/foo.css'), null);
+});
+
+test('recallTarget prefers the directory a real script or style actually came from', async () => {
+  const { rememberOrigin, rememberAssetBase, recallTarget, newSessionId } = await import('../proxy.mjs');
+  const sid = newSessionId();
+  rememberOrigin(sid, 'https://github.com');
+  // GitHub serves every script and style from one flat directory on a separate CDN host; a lost
+  // request keeps only its own filename, so only the filename (not the broken path) is reused.
+  rememberAssetBase(sid, new URL('https://github.githubassets.com/assets/foo-abc123.js'));
+  assert.equal(
+    recallTarget(sid, '/bar-def456.module.css', '?v=2'),
+    'https://github.githubassets.com/assets/bar-def456.module.css?v=2',
+    'the asset directory wins over the page\'s own origin, and only the filename carries over',
+  );
+  // A later asset from the same directory keeps it; one from elsewhere replaces it.
+  rememberAssetBase(sid, new URL('https://github.githubassets.com/assets/other-789.js'));
+  assert.equal(recallTarget(sid, '/baz.css'), 'https://github.githubassets.com/assets/baz.css');
 });
 
 test('sidFromCookieHeader reads win11wsid out of a Cookie header', async () => {
