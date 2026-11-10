@@ -127,7 +127,7 @@ test('script requests get a JS type even when the site labels it otherwise', asy
 });
 
 test('a session\'s page origin can be remembered and recalled', async () => {
-  const { rememberOrigin, recallOrigin, newSessionId } = await import('../proxy.mjs');
+  const { rememberOrigin, rememberAssetOrigin, recallOrigin, newSessionId } = await import('../proxy.mjs');
   const sid = newSessionId();
   assert.equal(recallOrigin(sid), null, 'nothing remembered yet');
   rememberOrigin(sid, 'https://github.com');
@@ -136,6 +136,11 @@ test('a session\'s page origin can be remembered and recalled', async () => {
   assert.equal(recallOrigin(sid), 'https://example.org', 'a later page replaces the remembered origin');
   assert.equal(recallOrigin(newSessionId()), null, 'a different session sees nothing');
   assert.equal(recallOrigin(null), null);
+  // A site that serves scripts/styles from a separate CDN host (GitHub's githubassets.com, for
+  // one) needs that host recalled, not the page's own -- a script's own URL computation almost
+  // always means the asset host it came from.
+  rememberAssetOrigin(sid, 'https://github.githubassets.com');
+  assert.equal(recallOrigin(sid), 'https://github.githubassets.com', 'the asset host wins over the page\'s own');
 });
 
 test('sidFromCookieHeader reads win11wsid out of a Cookie header', async () => {
