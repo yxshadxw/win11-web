@@ -87,15 +87,16 @@ function notFound(res) {
 }
 
 /**
- * A page open in the Chrome app's proxy sometimes computes an asset URL from its own address
- * (document.baseURI, location.origin) instead of a path we rewrote, landing the request on our
- * own host with no proxy wrapper at all (a bare /chunk-abc123.js). When the visitor's win11wsid
- * cookie says which session this came from, and we remember that session's real page origin
- * (set in proxy.mjs on every document load), send it back through the proxy at the right place
- * instead of 404ing. Only GET/HEAD: anything else is left alone rather than redirected blindly.
+ * A page open in the Chrome app's proxy sometimes computes an asset or fetch/form URL from its
+ * own address (document.baseURI, location.origin) instead of a path we rewrote, landing the
+ * request on our own host with no proxy wrapper at all (a bare /chunk-abc123.js, or a POST to
+ * /some/api/path). When the visitor's win11wsid cookie says which session this came from, and we
+ * remember that session's real page origin (set in proxy.mjs on every document load), send it
+ * back through the proxy at the right place instead of 404ing or 405ing. A 307 keeps the original
+ * method and body on the redirect (unlike 302/303, which browsers turn into a GET).
  */
 function fallbackToProxy(req, res, pathname) {
-  if ((req.method !== 'GET' && req.method !== 'HEAD') || pathname.startsWith('/api/') || pathname === PROXY_PATH) return false;
+  if (pathname.startsWith('/api/') || pathname === PROXY_PATH) return false;
   const sid = sidFromCookieHeader(req.headers.cookie);
   const origin = sid && recallOrigin(sid);
   if (!origin) return false;
@@ -105,7 +106,7 @@ function fallbackToProxy(req, res, pathname) {
     return true;
   }
   const target = origin + req.url;
-  res.writeHead(302, { location: `${PROXY_PATH}?url=${encodeURIComponent(target)}&s=${sid}`, 'cache-control': 'no-store' });
+  res.writeHead(307, { location: `${PROXY_PATH}?url=${encodeURIComponent(target)}&s=${sid}`, 'cache-control': 'no-store' });
   res.end();
   return true;
 }
@@ -169,6 +170,7 @@ const server = createServer((req, res) => {
     return pathname === '/yt/search' ? handleYouTube(req, res) : handleWeather(req, res);
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
+    if (fallbackToProxy(req, res, pathname)) return;
     res.writeHead(405);
     return res.end();
   }
