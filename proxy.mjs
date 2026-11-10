@@ -18,7 +18,7 @@ const RATE_WINDOW_MS = 60_000;
 // (often 100+ per page) get a separate, much higher budget. Sharing one budget made a few page
 // loads turn stylesheets into 429 HTML pages, which browsers then refuse to apply.
 const RATE_MAX = 240;
-const RATE_MAX_ASSETS = 3000;
+export const RATE_MAX_ASSETS = 3000;
 const RATE_MAX_POST = 60;
 const MAX_POST_BYTES = 1024 * 1024;
 // Cookie jars live in this server's memory, one per browsing session (see jarFor).
@@ -305,6 +305,32 @@ function defaultPath(pathname) {
   return pathname.slice(0, pathname.lastIndexOf('/') + 1) || '/';
 }
 
+// Many sites build asset URLs from document.baseURI or location.origin at runtime (webpack's
+// auto public-path, for one). Since the page's real address is our /proxy?url=...&s=... URL,
+// that lands the asset request on our own origin at a bare path, with the real target lost.
+// Remembering each session's current page origin lets us recover: a request that arrives for
+// our own host, or with no proxy wrapper at all, is retargeted at that remembered origin.
+export const SID_COOKIE = 'win11wsid';
+
+export function rememberOrigin(sid, origin) {
+  if (!sid) return;
+  jarFor(sid).origin = origin;
+}
+
+export function recallOrigin(sid) {
+  if (!sid) return null;
+  const jar = jars.get(sid);
+  if (!jar) return null;
+  jar.time = Date.now();
+  return jar.origin || null;
+}
+
+/** The win11wsid value from a visitor's Cookie header, if any looks valid. */
+export function sidFromCookieHeader(header) {
+  const m = /(?:^|;\s*)win11wsid=([0-9a-f]{32})/.exec(String(header || ''));
+  return m ? m[1] : null;
+}
+
 /** One Set-Cookie header, parsed for the response's host. Returns null when it is not allowed. */
 export function parseSetCookie(line, url) {
   const parts = String(line).split(';');
@@ -484,8 +510,18 @@ export async function handleProxy(req, res, clientIp) {
   try {
     const params = new URL(req.url, 'http://local').searchParams;
     let url = normalizeTarget(params.get('url'));
-    // Documents always get a session (their links carry it); other requests only when they have one.
-    const sid = validSession(params.get('s')) || (isDocument ? newSessionId() : null);
+    // Documents always get a session (their links carry it); other requests only when they have one,
+    // either from their own s= (wrapped by us) or, failing that, the visitor's win11wsid cookie
+    // (set below) for requests a page issued in a way we could not rewrite at all.
+    const sid = validSession(params.get('s')) || sidFromCookieHeader(req.headers.cookie) || (isDocument ? newSessionId() : null);
+    // A page that computes its own asset origin at runtime (document.baseURI, location.origin)
+    // sometimes lands the request back on our own host instead of the real one. Recover it from
+    // what we remember as this session's current page.
+    const ownHost = String(req.headers.host || '').split(':')[0].toLowerCase();
+    if (sid && ownHost && url.hostname.toLowerCase() === ownHost) {
+      const real = recallOrigin(sid);
+      if (real) url = normalizeTarget(real + url.pathname + url.search);
+    }
     let payload = method === 'POST' ? await readBody(req) : undefined;
     const cached = method === 'GET' && !sid ? cacheGet(url.href) : null;
     if (cached) {
@@ -523,6 +559,7 @@ export async function handleProxy(req, res, clientIp) {
       }
       break;
     }
+    if (isDocument && sid) rememberOrigin(sid, url.origin);
 
     const type = scriptType(
       stylesheetType(String(upstream.headers['content-type'] || ''), req.headers['sec-fetch-dest']),
@@ -537,6 +574,10 @@ export async function handleProxy(req, res, clientIp) {
       'cache-control': upstream.headers['cache-control'] || 'no-cache',
       'x-proxied-url': encodeURI(url.href),
     };
+    // So a request a page issues without going through our rewriting (document.baseURI /
+    // location.origin-based asset paths, which land on our own host with no s= at all) can
+    // still be traced back to the right session and origin, via recallOrigin above.
+    if (isDocument && sid) headers['set-cookie'] = `${SID_COOKIE}=${sid}; Path=/; Max-Age=7200; SameSite=None; Secure`;
 
     if (/text\/html|application\/xhtml/i.test(type) || /text\/css/i.test(type) || isScriptType(type)) {
       const body = await readLimited(decompress(upstream));
