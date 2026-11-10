@@ -82,7 +82,9 @@ async function serveStatic(req, res, pathname) {
 }
 
 function notFound(res) {
-  res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+  // A request from inside the proxy's sandboxed iframe carries Origin: null in CORS mode, so
+  // this needs the header too or the browser reports a vague network failure instead of a 404.
+  res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' });
   res.end('404 Not Found');
 }
 
@@ -101,14 +103,24 @@ function fallbackToProxy(req, res, pathname) {
   if (pathname.startsWith('/api/') || pathname === PROXY_PATH) return false;
   const sid = sidFromCookieHeader(req.headers.cookie);
   const { pathname: p, search } = new URL(req.url, 'http://local');
-  const target = sid && recallTarget(sid, p, search);
+  // recallTarget falls back to a shared, cross-session guess when sid is null (the sandboxed
+  // iframe's own requests never carry a cookie at all -- see proxy.mjs), so it is still called.
+  const target = recallTarget(sid, p, search);
   if (!target) return false;
+  // The request carries Origin: null (the sandboxed iframe's opaque origin) in CORS mode, so
+  // every response here -- redirect included -- needs an Access-Control-Allow-Origin or the
+  // browser drops it before the page ever sees it, whatever its status.
   if (rateLimited(`${clientIp(req)}|assets`, Date.now(), RATE_MAX_ASSETS)) {
-    res.writeHead(429, { 'content-type': 'text/plain; charset=utf-8' });
+    res.writeHead(429, { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' });
     res.end('요청이 너무 많습니다. 잠시 후 다시 시도하세요.');
     return true;
   }
-  res.writeHead(307, { location: `${PROXY_PATH}?url=${encodeURIComponent(target)}&s=${sid}`, 'cache-control': 'no-store' });
+  const qs = sid ? `&s=${sid}` : '';
+  res.writeHead(307, {
+    location: `${PROXY_PATH}?url=${encodeURIComponent(target)}${qs}`,
+    'cache-control': 'no-store',
+    'access-control-allow-origin': '*',
+  });
   res.end();
   return true;
 }

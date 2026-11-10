@@ -162,3 +162,13 @@ test('sidFromCookieHeader reads win11wsid out of a Cookie header', async () => {
   assert.equal(sidFromCookieHeader(''), null);
   assert.equal(sidFromCookieHeader(undefined), null);
 });
+
+test('recallTarget falls back to a shared global asset base when no session is known', async () => {
+  const { rememberAssetBase, recallTarget, newSessionId } = await import('../proxy.mjs');
+  const someSid = newSessionId();
+  rememberAssetBase(someSid, new URL('https://cdn.example.com/static/app-xyz.js'));
+  // A completely unidentifiable request (no session id at all) still gets a best guess, since a
+  // sandboxed iframe without allow-same-origin cannot send a cookie to tell sessions apart.
+  assert.equal(recallTarget(null, '/lost-chunk.js'), 'https://cdn.example.com/static/lost-chunk.js');
+  assert.equal(recallTarget(undefined, '/lost.css', '?v=1'), 'https://cdn.example.com/static/lost.css?v=1');
+});
