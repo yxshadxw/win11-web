@@ -10,6 +10,7 @@ import { handleChess } from './chess-online.mjs';
 import { handleBalloon, isInput } from './balloon-online.mjs';
 import { handleGostop, gostopTarget } from './gostop.mjs';
 import { handlePcImage } from './pc-images.mjs';
+import { handleLuckdefense } from './luckdefense-online.mjs';
 import { serveCached } from './mirror.mjs';
 import { ClassicServer } from './classic/server.mjs';
 import { upgrade } from './websocket.mjs';
@@ -161,6 +162,10 @@ const server = createServer((req, res) => {
     return handlePcImage(req, res, pathname);
   }
   if (pathname === PROXY_PATH) return handleProxy(req, res, clientIp(req));
+  // The luckdefense client's own router expects its teacher dashboard at the site root
+  // (it was exported assuming the whole site was that app), so this is served as a narrow
+  // alias rather than moving the app's asset base -- everything else stays under /apps/luckdefense/.
+  if (pathname === '/teacher') return serveStatic(req, res, '/apps/luckdefense/index.html');
   if (pathname.startsWith('/api/chess/')) {
     if (req.method === 'POST' && rateLimited(clientIp(req))) {
       res.writeHead(429, { 'content-type': 'application/json; charset=utf-8' });
@@ -175,6 +180,15 @@ const server = createServer((req, res) => {
       return res.end(JSON.stringify({ error: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' }));
     }
     return handleBalloon(req, res, pathname);
+  }
+  if (pathname === '/api/team' || pathname === '/api/classroom' || pathname === '/api/classes' || pathname === '/api/qr') {
+    // A whole classroom can sit behind one shared school IP and polls every ~1-2s each, so this
+    // needs a much larger budget than a single player's own actions would.
+    if (rateLimited(`${clientIp(req)}|luckdefense`, Date.now(), 1200)) {
+      res.writeHead(429, { 'content-type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ error: '요청이 너무 많습니다. 잠시 후 다시 시도하세요.' }));
+    }
+    if (handleLuckdefense(req, res, pathname)) return;
   }
   if (pathname === '/yt/search' || pathname === '/api/weather') {
     if (rateLimited(clientIp(req))) {
