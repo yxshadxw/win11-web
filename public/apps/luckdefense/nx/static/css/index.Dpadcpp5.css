@@ -35,3 +35,5 @@
 .tile-tip small{display:block;font-size:11px;opacity:.9;line-height:1.4;white-space:normal}
 .tile-tip em{display:block;font-style:normal;font-size:11px;color:#9ef0c0;font-weight:600}
 .tile:hover .tile-tip,.tile:focus-visible .tile-tip{display:flex}
+.allin-btn{border-color:#ff7a5c88!important;background:linear-gradient(135deg,#3a1f2a,#2a1a1a)!important}
+.allin-btn b{color:#ffb199}
