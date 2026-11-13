@@ -52,51 +52,15 @@ const makeQuiz = engine.g; // (seed, game, seat, level) => quiz
 const answerQuiz = engine.h; // (game, seat, quiz, answerIndex) => { correct, ... }
 const startWave = engine.q; // (game, now) => undefined, mutates phase lobby/prepare -> wave
 const restartGame = engine.U; // (game, autoRestart=false) => a brand-new game (only from phase 'defeat')
-const skipWave = engine.skipWave; // (game, spawnedThisWave) => undefined, force-finishes the current wave
-const TOWER_DEFS = engine.O; // [{name, rarity, chance, ...}] -- the 10 gacha tower definitions
+const skipRound = engine.skipRound; // (game, now) => force-finish the wave and start the next one
+const metaUpgrade = engine.metaUpgrade; // (game, seat, key) => meta levels, throws Error
 
 export class ApiError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 
-// --- Meta-upgrade shop: team-wide boosts bought with coins, layered on top of the plain engine. ---
-
-const META_KEYS = { drop: 'dropLevel', quiz: 'quizLevel', kill: 'killLevel', wall: 'wallLevel' };
-const META_MAX = 5;
-const WALL_BONUS_PER_LEVEL = 4;
-const RARITY_TIER = { '일반': 0, '고급': 1, '희귀': 2, '전설': 3, '신화': 4, '태초': 5 };
-
-function metaUpgradeCost(level) {
-  return 300 + level * 250;
-}
-
-function initMeta(game) {
-  game.meta = { dropLevel: 0, quizLevel: 0, killLevel: 0, wallLevel: 0 };
-  game.killBonusMult = 1;
-}
-
-/** Mirrors the engine's own gacha-roll-to-tower-index lookup so we can pick the best of several rolls. */
-function pickTowerKind(roll) {
-  let acc = 0;
-  for (let i = 0; i < TOWER_DEFS.length; i++) {
-    acc += TOWER_DEFS[i].chance;
-    if (roll < acc) return i;
-  }
-  return TOWER_DEFS.length - 1;
-}
-
-/** Drop-rate boost: reroll several times and keep whichever roll lands on the rarest tower. */
-function rollBuildIndex(dropLevel) {
-  const attempts = 1 + Math.min(dropLevel ?? 0, META_MAX);
-  let best = randomInt(100);
-  let bestTier = RARITY_TIER[TOWER_DEFS[pickTowerKind(best)].rarity] ?? 0;
-  for (let a = 1; a < attempts; a++) {
-    const roll = randomInt(100);
-    const tier = RARITY_TIER[TOWER_DEFS[pickTowerKind(roll)].rarity] ?? 0;
-    if (tier > bestTier) { bestTier = tier; best = roll; }
-  }
-  return best;
-}
+// Meta-upgrade shop (drop rate, quiz reward, kill reward, gate HP) and round skipping live in the
+// engine bundle itself so the solo client and this server share one implementation.
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O, 1/I lookalikes
 const MAX_ROOMS = 300;
@@ -185,7 +149,7 @@ function seatPlayer(room, group, name, token) {
   const seatIndex = group.seats.findIndex((s) => s === null);
   if (seatIndex === -1) throw new ApiError(409, '이 구역은 이미 가득 찼어요.');
   group.seats[seatIndex] = { token, name };
-  if (!group.game) { group.game = newGame(name, false); initMeta(group.game); }
+  if (!group.game) group.game = newGame(name, false);
   else group.game.players[seatIndex] = { name, coins: 1000, solved: Array(20).fill(0) };
   // Keep the players array aligned with seats even when an earlier seat is still empty.
   while (group.game.players.length < group.seats.filter(Boolean).length) {
@@ -311,14 +275,6 @@ async function handleTeam(req, res) {
       const quiz = makeQuiz(seed, group.game, seat, level);
       if (body.quizId !== undefined && body.quizId !== quiz.id) throw new ApiError(409, '문제가 바뀌었어요. 다시 골라 주세요.');
       const result = answerQuiz(group.game, seat, quiz, Number(body.choice));
-      if (result.correct && group.game.meta?.quizLevel) {
-        const mult = 1 + 0.2 * group.game.meta.quizLevel;
-        const bonus = Math.round(result.coins * (mult - 1));
-        if (bonus > 0) {
-          group.game.players[seat].coins += bonus;
-          result.coins += bonus;
-        }
-      }
       group.quizSeeds.delete(`${seat}:${level}`);
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result }));
@@ -329,41 +285,18 @@ async function handleTeam(req, res) {
       return send(res, 200, envelope(room, group, seat, { result: { started: group.game.round } }));
     }
     if (action === 'restart') {
-      const prevMeta = group.game.meta;
       group.game = restartGame(group.game, false);
-      group.game.meta = prevMeta ?? (initMeta(group.game), group.game.meta);
-      group.game.killBonusMult = 1 + 0.15 * (group.game.meta.killLevel ?? 0);
-      if (group.game.meta.wallLevel) {
-        const bonus = WALL_BONUS_PER_LEVEL * group.game.meta.wallLevel;
-        group.game.maxGate = (group.game.maxGate ?? 36) + bonus;
-        group.game.gate = group.game.maxGate;
-      }
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { started: group.game.round } }));
     }
     if (action === 'skip-round') {
       if (group.game.phase !== 'wave') throw new ApiError(400, '지금은 라운드를 건너뛸 수 없어요.');
-      skipWave(group.game, (group.game.spawned ?? 0) + 1);
-      if (group.game.phase === 'break') startWave(group.game, Date.now());
+      skipRound(group.game, Date.now());
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { skipped: true, round: group.game.round, phase: group.game.phase } }));
     }
     if (action.startsWith('upgrade-meta-')) {
-      const key = META_KEYS[action.slice('upgrade-meta-'.length)];
-      if (!key) throw new ApiError(400, '알 수 없는 업그레이드예요.');
-      if (!group.game.meta) initMeta(group.game);
-      const level = group.game.meta[key] ?? 0;
-      if (level >= META_MAX) throw new ApiError(400, '이미 최대로 강화했어요.');
-      const cost = metaUpgradeCost(level);
-      const player = group.game.players[seat];
-      if (!player || player.coins < cost) throw new ApiError(402, '코인이 부족해요.');
-      player.coins -= cost;
-      group.game.meta[key] = level + 1;
-      if (key === 'killLevel') group.game.killBonusMult = 1 + 0.15 * group.game.meta.killLevel;
-      if (key === 'wallLevel') {
-        group.game.maxGate = (group.game.maxGate ?? 36) + WALL_BONUS_PER_LEVEL;
-        group.game.gate = Math.min(group.game.maxGate, group.game.gate + WALL_BONUS_PER_LEVEL);
-      }
+      metaUpgrade(group.game, seat, action.slice('upgrade-meta-'.length));
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { meta: group.game.meta } }));
     }
@@ -374,7 +307,7 @@ async function handleTeam(req, res) {
         : action === 'move'
         ? { x: Number(body.fromX), y: Number(body.fromY) }
         : undefined;
-      const i = action === 'build' ? rollBuildIndex(group.game.meta?.dropLevel) : randomInt(100);
+      const i = randomInt(100);
       const tower = applyAction(group.game, seat, action, point, i, aux);
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { tower, action } }));
