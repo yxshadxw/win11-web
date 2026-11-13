@@ -151,7 +151,7 @@ function seatPlayer(room, group, name, token) {
   const seatIndex = group.seats.findIndex((s) => s === null);
   if (seatIndex === -1) throw new ApiError(409, '이 구역은 이미 가득 찼어요.');
   group.seats[seatIndex] = { token, name };
-  if (!group.game) group.game = newGame(name, false);
+  if (!group.game) { group.game = newGame(name, false); if (room.shared) group.game.shared = true; }
   else group.game.players[seatIndex] = { name, coins: 1000, solved: Array(20).fill(0) };
   // Keep the players array aligned with seats even when an earlier seat is still empty.
   while (group.game.players.length < group.seats.filter(Boolean).length) {
@@ -242,6 +242,7 @@ async function handleTeam(req, res) {
   try {
     if (action === 'create') {
       const room = createRoom({ kind: 'team', hostToken: null });
+      room.shared = Boolean(body.shared);
       const seat = seatPlayer(room, room.groups[0], cleanName(body.name) || '팀장', clientToken(body.token));
       return send(res, 200, { ...envelope(room, room.groups[0], seat.seat), token: seat.token });
     }
