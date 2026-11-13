@@ -55,6 +55,7 @@ const startWave = engine.q; // (game, now) => undefined, mutates phase lobby/pre
 const restartGame = engine.U; // (game, autoRestart=false) => a brand-new game (only from phase 'defeat')
 const skipRound = engine.skipRound; // (game, now) => force-finish the wave and start the next one
 const metaUpgrade = engine.metaUpgrade; // (game, seat, key) => meta levels, throws Error
+const economyAction = engine.economyAction; // (game, seat, 'loan' | 'gamble-<bet>') => result, throws Error
 
 export class ApiError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -295,6 +296,11 @@ async function handleTeam(req, res) {
       skipRound(group.game, Date.now());
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { skipped: true, round: group.game.round, phase: group.game.phase } }));
+    }
+    if (action === 'loan' || action.startsWith('gamble-')) {
+      const result = economyAction(group.game, seat, action);
+      group.revision++;
+      return send(res, 200, envelope(room, group, seat, { result }));
     }
     if (action.startsWith('upgrade-meta-')) {
       metaUpgrade(group.game, seat, action.slice('upgrade-meta-'.length));
