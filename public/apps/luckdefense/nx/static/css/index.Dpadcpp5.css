@@ -28,3 +28,4 @@
 .feedback b{font-size:15px}
 .feedback p{font-size:13px}
 .quiz-prompt{font-size:16px;line-height:1.6}
+.choices button.missed::after{content:" · 오답";font-size:11px;opacity:.9;margin-left:4px}
