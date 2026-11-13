@@ -35,3 +35,20 @@
 .tile-tip small{display:block;font-size:11px;opacity:.9;line-height:1.4;white-space:normal}
 .tile-tip em{display:block;font-style:normal;font-size:11px;color:#9ef0c0;font-weight:600}
 .tile:hover .tile-tip,.tile:focus-visible .tile-tip{display:flex}
+.allin-btn{border-color:#ff7a5c88!important;background:linear-gradient(135deg,#3a1f2a,#2a1a1a)!important}
+.allin-btn b{color:#ffb199}
+.fx-burst{position:fixed;z-index:9999;width:0;height:0;pointer-events:none}
+.fx-ring{position:absolute;left:-30px;top:-30px;width:60px;height:60px;border-radius:50%;border:3px solid #7bd5ad;box-shadow:0 0 18px #7bd5ad99;animation:fxRing .7s ease-out forwards}
+.fx-burst.gold .fx-ring{border-color:#ffd166;box-shadow:0 0 26px #ffd166cc}
+.fx-burst.fail .fx-ring{border-color:#ff6b6b;box-shadow:0 0 18px #ff6b6b99}
+.fx-label{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;padding:6px 14px;border-radius:999px;font-size:15px;font-weight:800;background:#0d1a14ee;color:#9ef0c0;border:1px solid #7bd5ad;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:fxRise 1.1s ease-out forwards}
+.fx-burst.gold .fx-label{color:#ffe08a;border-color:#ffd166;background:#2a2108ee;font-size:18px}
+.fx-burst.fail .fx-label{color:#ffb3b3;border-color:#ff6b6b;background:#2a0f12ee}
+.fx-spark{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#7bd5ad;animation:fxSpark .75s ease-out forwards}
+.fx-burst.gold .fx-spark{background:#ffd166}
+.fx-burst.fail .fx-spark{background:#ff6b6b}
+.fx-shake{animation:fxShake .45s ease-in-out}
+@keyframes fxRing{0%{transform:scale(.4);opacity:1}100%{transform:scale(3);opacity:0}}
+@keyframes fxRise{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}18%{opacity:1;transform:translate(-50%,-90%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
+@keyframes fxSpark{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+@media (prefers-reduced-motion: reduce){.fx-ring,.fx-spark{animation:none;opacity:0}}
