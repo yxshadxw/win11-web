@@ -277,7 +277,8 @@ async function handleTeam(req, res) {
       const quiz = makeQuiz(seed, quizRound(group.game), seat, level);
       if (body.quizId !== undefined && body.quizId !== quiz.id) throw new ApiError(409, '문제가 바뀌었어요. 다시 골라 주세요.');
       const result = answerQuiz(group.game, seat, quiz, Number(body.choice));
-      group.quizSeeds.delete(`${seat}:${level}`);
+      // Keep the seed after a wrong answer so the remaining chances can still be used.
+      if (result?.correct) group.quizSeeds.delete(`${seat}:${level}`);
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result }));
     }
