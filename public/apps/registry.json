@@ -21,6 +21,7 @@
     { "id": "solitaire",  "name": "솔리테어",   "icon": "🂡", "image": "/icons/solitaire.svg",  "url": "/apps/solitaire/",  "width": 980,  "height": 680, "category": "게임" },
     { "id": "omok",       "name": "오목",       "icon": "⚫", "image": "/icons/omok.svg",       "url": "/apps/omok/",       "width": 760,  "height": 700, "category": "게임" },
     { "id": "defense",    "name": "수호의 탑",  "icon": "🏰", "image": "/icons/defense.svg",    "url": "/apps/defense/",    "width": 1000, "height": 680, "category": "게임" },
+    { "id": "luckdefense", "name": "운빨 디펜스", "icon": "🎲", "image": "/apps/luckdefense/defense-icon.svg", "url": "/apps/luckdefense/", "width": 1120, "height": 760, "category": "게임" },
     { "id": "platformer", "name": "별조각 모험", "icon": "⭐", "image": "/icons/platformer.svg", "url": "/apps/platformer/", "width": 960,  "height": 600, "category": "게임" },
     { "id": "rhythm",     "name": "비트 정원",  "icon": "🎵", "image": "/icons/rhythm.svg",     "url": "/apps/rhythm/",     "width": 720,  "height": 680, "category": "게임" },
     { "id": "shooter",    "name": "별빛 비행",  "icon": "🚀", "image": "/icons/shooter.svg",    "url": "/apps/shooter/",    "width": 560,  "height": 720, "category": "게임" },
