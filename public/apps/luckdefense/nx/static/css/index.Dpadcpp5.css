@@ -52,3 +52,33 @@
 @keyframes fxRise{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}18%{opacity:1;transform:translate(-50%,-90%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
 @keyframes fxSpark{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 @media (prefers-reduced-motion: reduce){.fx-ring,.fx-spark{animation:none;opacity:0}}
+.mon-tip{position:fixed;z-index:60;min-width:170px;max-width:260px;padding:8px 10px;border-radius:10px;background:#0d1424f2;border:1px solid #3b4b7a;box-shadow:0 8px 24px rgba(0,0,0,.5);color:#e8eefc;pointer-events:none;display:flex;flex-direction:column;gap:5px}
+.mon-tip b{font-size:13px}
+.mon-tip small{font-size:11px;opacity:.9}
+.mon-tip.gold{border-color:#ffd54a;box-shadow:0 0 14px #ffd54a55}
+.mon-tip.rainbow{border-color:#c58cff;box-shadow:0 0 14px #c58cff66}
+.mon-hp{display:block;height:7px;border-radius:4px;background:#1c2740;overflow:hidden}
+.mon-hp i{display:block;height:100%;background:linear-gradient(90deg,#ff6b6b,#ffd166);transition:width .12s}
+.shared-toggle{display:flex;gap:10px;align-items:flex-start;margin:10px 0;padding:10px 12px;border-radius:10px;border:1px solid #33425f;background:#141d33;cursor:pointer}
+.shared-toggle input{margin-top:3px;width:18px;height:18px;accent-color:#7bd5ad}
+.shared-toggle b{display:block;font-size:14px}
+.shared-toggle small{display:block;font-size:12px;opacity:.8;margin-top:2px}
+.boss-cine{position:fixed;inset:0;z-index:9998;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.bc-bar{position:absolute;left:0;right:0;height:13vh;background:#000;animation:bcBar 2.2s ease-in-out forwards}
+.bc-bar.top{top:0;transform-origin:top}.bc-bar.bot{bottom:0;transform-origin:bottom}
+.bc-vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,#ff2a4a66 100%);animation:bcVig 2.2s ease-in-out forwards}
+.boss-cine.win .bc-vig{background:radial-gradient(ellipse at center,transparent 35%,#ffd16688 100%)}
+.boss-cine.lose .bc-vig{background:radial-gradient(ellipse at center,transparent 25%,#000c 100%)}
+.bc-text{position:relative;text-align:center;animation:bcText 2.2s ease-out forwards}
+.bc-text strong{display:block;font-size:clamp(34px,7vw,76px);font-weight:900;letter-spacing:.06em;color:#ff4d6d;text-shadow:0 0 24px #ff2a4a,0 4px 0 #3a0010}
+.bc-text span{display:block;margin-top:8px;font-size:clamp(14px,2.4vw,24px);font-weight:700;color:#ffe3e8;text-shadow:0 2px 8px #000}
+.boss-cine.win .bc-text strong{color:#ffd166;text-shadow:0 0 24px #ffb300,0 4px 0 #4a3000}
+.boss-cine.lose .bc-text strong{color:#9aa4bd;text-shadow:0 0 18px #000}
+.boss-cine.warn .bc-text strong{animation:bcBlink .45s steps(2) 5}
+@keyframes bcBar{0%{transform:scaleY(0)}15%,85%{transform:scaleY(1)}100%{transform:scaleY(0)}}
+@keyframes bcVig{0%{opacity:0}20%,80%{opacity:1}100%{opacity:0}}
+@keyframes bcText{0%{opacity:0;transform:scale(2.2)}18%{opacity:1;transform:scale(1)}85%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.1)}}
+@keyframes bcBlink{50%{opacity:.25}}
+body.boss-shake{animation:bossShake .45s linear}
+@keyframes bossShake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(4px,3px)}}
+@media (prefers-reduced-motion: reduce){body.boss-shake{animation:none}}
