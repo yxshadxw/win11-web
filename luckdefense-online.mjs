@@ -292,6 +292,7 @@ async function handleTeam(req, res) {
       return send(res, 200, envelope(room, group, seat, { result: { started: group.game.round } }));
     }
     if (action === 'skip-round') {
+      throw new ApiError(400, '라운드 건너뛰기는 더 이상 지원하지 않아요.');
       if (group.game.phase !== 'wave') throw new ApiError(400, '지금은 라운드를 건너뛸 수 없어요.');
       skipRound(group.game, Date.now());
       group.revision++;
