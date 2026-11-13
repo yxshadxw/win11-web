@@ -343,7 +343,8 @@ async function handleTeam(req, res) {
     }
     if (action === 'skip-round') {
       if (group.game.phase !== 'wave') throw new ApiError(400, '지금은 라운드를 건너뛸 수 없어요.');
-      skipWave(group.game, group.game.spawned ?? 0);
+      skipWave(group.game, (group.game.spawned ?? 0) + 1);
+      if (group.game.phase === 'break') startWave(group.game, Date.now());
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { skipped: true, round: group.game.round, phase: group.game.phase } }));
     }
