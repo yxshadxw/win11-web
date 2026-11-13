@@ -308,7 +308,7 @@ async function handleTeam(req, res) {
         : action === 'move'
         ? { x: Number(body.fromX), y: Number(body.fromY) }
         : undefined;
-      const i = randomInt(100);
+      const i = randomInt(10000) / 100;
       const tower = applyAction(group.game, seat, action, point, i, aux);
       group.revision++;
       return send(res, 200, envelope(room, group, seat, { result: { tower, action } }));
