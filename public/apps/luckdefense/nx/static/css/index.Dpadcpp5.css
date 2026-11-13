@@ -19,3 +19,12 @@
 @keyframes fxSpin{to{transform:rotateX(360deg)}}
 @keyframes fxShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 @media (prefers-reduced-motion: reduce){.fx-confetti i,.fx-pop,.fx-gamble-box.spinning .fx-reel{animation:none}}
+.build-option b{font-size:13px}
+.build-option small{font-size:11px;opacity:.85;white-space:normal;line-height:1.4;margin-top:3px}
+.build-option:disabled{opacity:.62}
+.build-option:disabled b{color:#c9d3e6}
+.choices button.missed{opacity:.72}
+.feedback{font-size:13.5px}
+.feedback b{font-size:15px}
+.feedback p{font-size:13px}
+.quiz-prompt{font-size:16px;line-height:1.6}
