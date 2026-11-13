@@ -29,3 +29,9 @@
 .feedback p{font-size:13px}
 .quiz-prompt{font-size:16px;line-height:1.6}
 .choices button.missed::after{content:" · 오답";font-size:11px;opacity:.9;margin-left:4px}
+.tile{position:relative}
+.tile-tip{display:none;position:absolute;z-index:40;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:max-content;max-width:230px;padding:9px 11px;border-radius:10px;background:#0d1424;border:1px solid #3b4b7a;box-shadow:0 8px 24px rgba(0,0,0,.45);color:#e8eefc;text-align:left;pointer-events:none;flex-direction:column;gap:3px}
+.tile-tip b{font-size:13px}
+.tile-tip small{display:block;font-size:11px;opacity:.9;line-height:1.4;white-space:normal}
+.tile-tip em{display:block;font-style:normal;font-size:11px;color:#9ef0c0;font-weight:600}
+.tile:hover .tile-tip,.tile:focus-visible .tile-tip{display:flex}
