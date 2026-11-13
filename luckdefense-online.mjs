@@ -15,7 +15,7 @@
 //   POST /api/team        { action: 'create' | 'join' | 'sync' | 'peek' | 'start' | 'restart' |
 //                            'build' | 'upgrade' | 'enhance' | 'demolish' | 'move' |
 //                            'question' | 'answer' | 'skip-round' |
-//                            'upgrade-meta-drop' | 'upgrade-meta-quiz' | 'upgrade-meta-kill' | 'upgrade-meta-wall', ... }
+//                            'upgrade-meta-drop' | 'upgrade-meta-quiz' | 'upgrade-meta-kill' | 'upgrade-meta-wall' | 'upgrade-meta-speed', ... }
 
 import { randomBytes, randomInt } from 'node:crypto';
 import { serveCached } from './mirror.mjs';
