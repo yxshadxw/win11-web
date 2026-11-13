@@ -64,7 +64,7 @@ export class ApiError extends Error {
 const META_KEYS = { drop: 'dropLevel', quiz: 'quizLevel', kill: 'killLevel', wall: 'wallLevel' };
 const META_MAX = 5;
 const WALL_BONUS_PER_LEVEL = 4;
-const RARITY_TIER = { '일반': 0, '고급': 1, '희귀': 2, '전설': 3, '신화': 4 };
+const RARITY_TIER = { '일반': 0, '고급': 1, '희귀': 2, '전설': 3, '신화': 4, '태초': 5 };
 
 function metaUpgradeCost(level) {
   return 300 + level * 250;
