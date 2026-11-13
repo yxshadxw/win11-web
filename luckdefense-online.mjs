@@ -220,7 +220,7 @@ function send(res, status, payload) {
 
 // --- /api/team: creating/joining a standalone team, and all in-round gameplay actions. ---
 
-const ACTION_KINDS = new Set(['build', 'upgrade', 'enhance', 'demolish', 'move']);
+const ACTION_KINDS = new Set(['build', 'upgrade', 'enhance', 'demolish', 'move', 'haste']);
 
 /** The envelope every /api/team response shares (except 'question', which is quiz-only). */
 function envelope(room, group, seat, extra) {
