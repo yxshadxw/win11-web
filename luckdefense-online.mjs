@@ -48,7 +48,8 @@ const engine = await import(engineUrl.href);
 const newGame = engine.F; // (name, solo) => fresh game state
 const applyAction = engine.V; // (game, seat, action, point, randomInt, aux) => tower | throws Error
 const tick = engine.j; // (game, now) => boolean (state changed)
-const makeQuiz = engine.g; // (seed, game, seat, level) => quiz
+const quizRound = engine.X; // (game) => the round key quizzes are generated for
+const makeQuiz = engine.g; // (seed, roundKey, seat, level) => quiz
 const answerQuiz = engine.h; // (game, seat, quiz, answerIndex) => { correct, ... }
 const startWave = engine.q; // (game, now) => undefined, mutates phase lobby/prepare -> wave
 const restartGame = engine.U; // (game, autoRestart=false) => a brand-new game (only from phase 'defeat')
@@ -265,14 +266,14 @@ async function handleTeam(req, res) {
       if (!Number.isInteger(level) || level < 0 || level > 5) throw new ApiError(400, '잘못된 문제 번호예요.');
       const seed = randomInt(2 ** 31);
       group.quizSeeds.set(`${seat}:${level}`, seed);
-      const quiz = makeQuiz(seed, group.game, seat, level);
+      const quiz = makeQuiz(seed, quizRound(group.game), seat, level);
       return send(res, 200, { quiz });
     }
     if (action === 'answer') {
       const level = Number(body.level);
       const seed = group.quizSeeds.get(`${seat}:${level}`);
       if (seed === undefined) throw new ApiError(400, '문제를 먼저 받아와 주세요.');
-      const quiz = makeQuiz(seed, group.game, seat, level);
+      const quiz = makeQuiz(seed, quizRound(group.game), seat, level);
       if (body.quizId !== undefined && body.quizId !== quiz.id) throw new ApiError(409, '문제가 바뀌었어요. 다시 골라 주세요.');
       const result = answerQuiz(group.game, seat, quiz, Number(body.choice));
       group.quizSeeds.delete(`${seat}:${level}`);
