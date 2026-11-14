@@ -82,3 +82,73 @@
 body.boss-shake{animation:bossShake .45s linear}
 @keyframes bossShake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(4px,3px)}}
 @media (prefers-reduced-motion: reduce){body.boss-shake{animation:none}}
+/* ===== polish pass: richer effects ===== */
+.fx-glow{position:absolute;left:-80px;top:-80px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#c8ffe4cc 0%,#7bd5ad55 35%,transparent 70%);mix-blend-mode:screen;animation:fxGlow .65s ease-out forwards}
+.fx-burst.gold .fx-glow{background:radial-gradient(circle,#fff3c4ee 0%,#ffd16688 35%,transparent 70%);left:-110px;top:-110px;width:220px;height:220px}
+.fx-burst.fail .fx-glow{background:radial-gradient(circle,#ffc4c488 0%,#ff6b6b44 35%,transparent 70%)}
+.fx-ring2{animation-delay:.12s!important;border-width:2px;opacity:.7}
+.fx-rays{position:absolute;left:-120px;top:-120px;width:240px;height:240px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#ffe08aaa 0 6deg,transparent 6deg 24deg);-webkit-mask:radial-gradient(circle,transparent 18%,#000 30%,transparent 72%);mask:radial-gradient(circle,transparent 18%,#000 30%,transparent 72%);animation:fxRays 1.2s ease-out forwards}
+.fx-spark{width:var(--sz,8px);height:var(--sz,8px);margin:calc(var(--sz,8px)/-2) 0 0 calc(var(--sz,8px)/-2);left:0;top:0;animation:fxSpark .85s cubic-bezier(.15,.7,.3,1) var(--dl,0s) forwards;box-shadow:0 0 8px currentColor;color:#7bd5ad}
+.fx-burst.gold .fx-spark{color:#ffd166}.fx-burst.fail .fx-spark{color:#ff6b6b}
+.fx-spark.star{border-radius:0;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.fx-label{background:linear-gradient(180deg,#14261dee,#0b1712ee);letter-spacing:.02em;text-shadow:0 0 12px currentColor}
+.fx-burst.gold .fx-label{background:linear-gradient(180deg,#3a2c0aee,#241a05ee);box-shadow:0 0 26px #ffd16688,0 6px 20px rgba(0,0,0,.5)}
+@keyframes fxGlow{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.5);opacity:0}}
+@keyframes fxRays{0%{transform:rotate(0) scale(.4);opacity:0}25%{opacity:1}100%{transform:rotate(70deg) scale(1.25);opacity:0}}
+@keyframes fxSpark{0%{transform:translate(0,0) scale(1.2);opacity:1}70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 14px)) scale(.15);opacity:0}}
+/* gamble overlay */
+.fx-gamble-backdrop{background:radial-gradient(circle at center,rgba(40,30,80,.55),rgba(3,5,14,.82));backdrop-filter:blur(3px)}
+.fx-gamble-box{position:relative;overflow:hidden;min-width:280px;padding:28px 34px;border-radius:22px;background:linear-gradient(160deg,#1a2140,#10162b);border:2px solid #4a5f9a}
+.fx-gamble-box::before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,#ffffff14,transparent 30%);animation:fxSweep 3s linear infinite;pointer-events:none}
+.fx-gamble-box.win{border-color:#ffd166;background:linear-gradient(160deg,#3a2c10,#1b1407)}
+.fx-gamble-box.lose{border-color:#ff6b6b;background:linear-gradient(160deg,#3a1218,#190a0d)}
+.fx-gamble-box .fx-title{font-size:30px;font-weight:900;margin-top:10px;text-shadow:0 0 18px currentColor}
+.fx-gamble-box.win .fx-title{color:#ffe08a}.fx-gamble-box.lose .fx-title{color:#ff9a9a}.fx-gamble-box.even .fx-title{color:#cfe0ff}
+.fx-gamble-box .fx-sub{font-size:20px;font-weight:800;margin-top:4px;opacity:.95}
+.fx-reel{filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+.fx-gamble-box:not(.spinning) .fx-reel{animation:fxReelStop .5s cubic-bezier(.2,1.6,.4,1) both}
+.fx-gamble-box:not(.spinning) .fx-reel:nth-child(2){animation-delay:.1s}.fx-gamble-box:not(.spinning) .fx-reel:nth-child(3){animation-delay:.2s}
+.fx-halo{position:absolute;left:50%;top:50%;width:520px;height:520px;margin:-260px 0 0 -260px;background:repeating-conic-gradient(from 0deg,#ffd16655 0 8deg,transparent 8deg 24deg);-webkit-mask:radial-gradient(circle,#000 5%,transparent 70%);mask:radial-gradient(circle,#000 5%,transparent 70%);animation:fxSweep 8s linear infinite;pointer-events:none}
+.fx-coin-rain{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.fx-coin-rain i{position:absolute;top:-30px;font-style:normal;animation:fxCoin 1.5s ease-in forwards;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+@keyframes fxSweep{to{transform:rotate(360deg)}}
+@keyframes fxReelStop{0%{transform:translateY(-30px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+@keyframes fxCoin{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(420px) rotate(540deg);opacity:.2}}
+/* boss cinematic */
+.bc-wave{position:absolute;left:50%;top:50%;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;border:3px solid #ff4d6d;box-shadow:0 0 40px #ff2a4a,inset 0 0 40px #ff2a4a66;animation:bcWave 1.4s ease-out .15s forwards;opacity:0}
+.boss-cine.win .bc-wave{border-color:#ffd166;box-shadow:0 0 40px #ffb300,inset 0 0 40px #ffb30066}
+.boss-cine.lose .bc-wave{border-color:#667;box-shadow:none}
+.bc-ember{position:absolute;bottom:-10px;width:5px;height:5px;border-radius:50%;background:#ff7a3d;box-shadow:0 0 10px #ff5a1f;animation:bcEmber 2.4s ease-out forwards;opacity:0}
+.boss-cine.win .bc-ember{background:#ffd166;box-shadow:0 0 10px #ffb300}
+.boss-cine.lose .bc-ember{background:#778;box-shadow:none}
+.bc-line{display:block;height:3px;margin:10px auto 0;width:0;background:linear-gradient(90deg,transparent,#ff4d6d,transparent);animation:bcLine .9s ease-out .25s forwards}
+.boss-cine.win .bc-line{background:linear-gradient(90deg,transparent,#ffd166,transparent)}
+.bc-text strong{animation:bcSpace 2.2s ease-out forwards}
+.bc-vig{background:radial-gradient(ellipse at center,transparent 30%,#ff2a4a55 70%,#30000b99 100%)}
+.bc-bar{background:linear-gradient(180deg,#000,#0a0006)}
+@keyframes bcWave{0%{transform:scale(.4);opacity:.9}100%{transform:scale(26);opacity:0}}
+@keyframes bcEmber{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(var(--sw),-70vh);opacity:0}}
+@keyframes bcLine{to{width:min(70vw,520px)}}
+@keyframes bcSpace{0%{letter-spacing:.5em;filter:blur(8px)}30%{letter-spacing:.08em;filter:blur(0)}100%{letter-spacing:.12em}}
+/* confetti + coin pops */
+.fx-confetti i{width:9px;height:14px;animation:fxFall 2s cubic-bezier(.3,.1,.6,1) forwards}
+.fx-confetti i:nth-child(3n){border-radius:50%;width:10px;height:10px}
+.fx-confetti i:nth-child(4n){width:5px;height:20px}
+.fx-confetti i:nth-child(2n){animation-name:fxFallSway}
+@keyframes fxFallSway{0%{transform:translateY(0) translateX(0) rotate(0)}50%{transform:translateY(55vh) translateX(26px) rotate(360deg)}100%{transform:translateY(110vh) translateX(-18px) rotate(720deg);opacity:.9}}
+.fx-pop{background:linear-gradient(180deg,#fff3c4,#ffc94d);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));font-size:24px}
+@media (prefers-reduced-motion: reduce){.fx-glow,.fx-rays,.bc-wave,.bc-ember,.fx-halo,.fx-coin-rain i,.fx-gamble-box::before{animation:none;opacity:0}}
+.fx-gamble-box>div:not(.fx-coin-rain):not(.fx-halo){position:relative;z-index:2}
+.fx-coin-rain{z-index:1}
+/* ===== anime.js driven effects (class .ax): disable CSS keyframes, start hidden ===== */
+.fx-burst.ax .fx-glow,.fx-burst.ax .fx-rays,.fx-burst.ax .fx-ring,.fx-burst.ax .fx-label,.fx-burst.ax .fx-spark{animation:none;opacity:0}
+.fx-burst.ax .fx-label{transform:translate(-50%,-50%)}
+.boss-cine.ax .bc-bar,.boss-cine.ax .bc-vig,.boss-cine.ax .bc-wave,.boss-cine.ax .bc-ember,.boss-cine.ax .bc-text,.boss-cine.ax .bc-text strong{animation:none}
+.boss-cine.ax .bc-bar.top{transform:translateY(-100%)}.boss-cine.ax .bc-bar.bot{transform:translateY(100%)}
+.boss-cine.ax .bc-vig,.boss-cine.ax .bc-wave,.boss-cine.ax .bc-ember,.boss-cine.ax .bc-ch,.boss-cine.ax .bc-line,.boss-cine.ax .bc-text span:not(.bc-ch){opacity:0}
+.boss-cine.ax .bc-text strong{letter-spacing:.12em}
+.bc-ch{display:inline-block}
+.fx-gamble-box.ax:not(.spinning) .fx-reel{animation:none}
+.fx-gamble-box.ax .fx-coin-rain i{animation:none;opacity:0}
+.fx-confetti.ax i{animation:none}
+.bc-text strong .bc-ch{display:inline-block;margin:0;font-size:inherit;font-weight:inherit;color:inherit;text-shadow:inherit;letter-spacing:inherit}
